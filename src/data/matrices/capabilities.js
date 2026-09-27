@@ -1,0 +1,539 @@
+export default [
+  {
+    "id": "HIVE_MANAGEMENT",
+    "designationFamily": "BEEKEEPER",
+    "name": "Hive Management",
+    "type": "Core",
+    "purpose": "Manage hive records and track history",
+    "category": "FIELD"
+  },
+  {
+    "id": "HIVE_INSPECTION",
+    "designationFamily": "BEEKEEPER",
+    "name": "Bee - Inspection",
+    "type": "Core",
+    "purpose": "Perform routine hive inspections",
+    "category": "FIELD"
+  },
+  {
+    "id": "BEE_OBSERVATION",
+    "designationFamily": "BEEKEEPER",
+    "name": "Bee Observation",
+    "type": "Core",
+    "purpose": "Record observations and field notes",
+    "category": "FIELD"
+  },
+  {
+    "id": "EVIDENCE_CAPTURE",
+    "designationFamily": "BEEKEEPER",
+    "name": "Evidence Capture",
+    "type": "Core",
+    "purpose": "Capture/store inspection evidence",
+    "category": "FIELD"
+  },
+  {
+    "id": "BEE_HEALTH_SCAN",
+    "designationFamily": "BEEKEEPER",
+    "name": "AI - Disease Inspection",
+    "type": "Optional",
+    "purpose": "Capture and analyze frame images for disease screening",
+    "category": "FIELD"
+  },
+  {
+    "id": "CONNECTED_HIVE_MONITORING",
+    "designationFamily": "BEEKEEPER",
+    "name": "Hive Telemetries",
+    "type": "Optional",
+    "purpose": "View connected temperature, humidity and hive activity telemetry",
+    "category": "FIELD"
+  },
+  {
+    "id": "HIVE_DEVICE_MANAGEMENT",
+    "designationFamily": "BEEKEEPER",
+    "name": "Hive Device Management",
+    "type": "Optional",
+    "purpose": "Assign/test/manage connected hive devices",
+    "category": "FIELD"
+  },
+  {
+    "id": "HONEY_COLLECTION",
+    "designationFamily": "BEEKEEPER",
+    "name": "Honey Collection",
+    "type": "Optional",
+    "purpose": "Record harvest/collection activity",
+    "category": "FIELD"
+  },
+  {
+    "id": "COLLECTION_BATCH_LINK",
+    "designationFamily": "BEEKEEPER",
+    "name": "Collection-to-Batch Linking",
+    "type": "Optional",
+    "purpose": "Link collections to honey batches",
+    "category": "FIELD"
+  },
+  {
+    "id": "ADVANCED_HIVE_MANAGEMENT",
+    "designationFamily": "BEEKEEPER",
+    "name": "Advanced Hive Management",
+    "type": "Optional",
+    "purpose": "Advanced hive organization/operational controls",
+    "category": "FIELD"
+  },
+  {
+    "id": "PROCESSING_MANAGEMENT",
+    "designationFamily": "PROCESSOR",
+    "name": "Processing Management",
+    "type": "Core",
+    "purpose": "Manage processing workflows and records",
+    "category": "PRODUCTION"
+  },
+  {
+    "id": "BATCH_INTAKE",
+    "designationFamily": "PROCESSOR",
+    "name": "Batch Intake",
+    "type": "Core",
+    "purpose": "Receive eligible batches into processing",
+    "category": "PRODUCTION"
+  },
+  {
+    "id": "PROCESSING_STEP_RECORD",
+    "designationFamily": "PROCESSOR",
+    "name": "Processing Step Recording",
+    "type": "Core",
+    "purpose": "Record processing steps and notes",
+    "category": "PRODUCTION"
+  },
+  {
+    "id": "PROCESSING_PARAMETERS",
+    "designationFamily": "PROCESSOR",
+    "name": "Processing Parameters",
+    "type": "Core",
+    "purpose": "Record processing parameters",
+    "category": "PRODUCTION"
+  },
+  {
+    "id": "PROCESSING_EVIDENCE",
+    "designationFamily": "PROCESSOR",
+    "name": "Processing Evidence",
+    "type": "Core",
+    "purpose": "Capture processing evidence",
+    "category": "PRODUCTION"
+  },
+  {
+    "id": "BATCH_TRACEABILITY",
+    "designationFamily": "PROCESSOR",
+    "designationFamilies": ["PROCESSOR", "DISTRIBUTOR"],
+    "name": "Batch Traceability",
+    "type": "Core",
+    "purpose": "View permitted upstream/downstream lineage and batch traceability",
+    "category": "PRODUCTION"
+  },
+  {
+    "id": "PROCESSING_COMPLETION",
+    "designationFamily": "PROCESSOR",
+    "name": "Processing Completion",
+    "type": "Core",
+    "purpose": "Complete processing and advance the batch",
+    "category": "PRODUCTION"
+  },
+  {
+    "id": "BATCH_SPLIT_MERGE",
+    "designationFamily": "PROCESSOR",
+    "name": "Batch Split / Merge",
+    "type": "Optional",
+    "purpose": "Split or merge batches with traceability",
+    "category": "PRODUCTION"
+  },
+  {
+    "id": "COLLECTION_INTAKE",
+    "designationFamily": "PROCESSOR",
+    "name": "Collection Intake",
+    "type": "Optional",
+    "purpose": "Receive/create collection records",
+    "category": "PRODUCTION"
+  },
+  {
+    "id": "QUALITY_HANDOFF",
+    "designationFamily": "PROCESSOR",
+    "name": "Quality Handoff",
+    "type": "Optional",
+    "purpose": "Prepare processed batches for Quality",
+    "category": "PRODUCTION"
+  },
+  {
+    "id": "PACKAGING_HANDOFF",
+    "designationFamily": "PROCESSOR",
+    "name": "Packaging Handoff",
+    "type": "Optional",
+    "purpose": "Prepare eligible batches for Packaging",
+    "category": "PRODUCTION"
+  },
+  {
+    "id": "PROCESSING_DEVICE_MANAGEMENT",
+    "designationFamily": "PROCESSOR",
+    "name": "Processing Device Management",
+    "type": "Optional",
+    "purpose": "Manage connected processing equipment",
+    "category": "PRODUCTION"
+  },
+  {
+    "id": "PROCESSING_ANALYTICS",
+    "designationFamily": "PROCESSOR",
+    "name": "Processing Analytics",
+    "type": "Optional",
+    "purpose": "View processing trends/history",
+    "category": "PRODUCTION"
+  },
+  {
+    "id": "HIVE_SOURCE_VIEW",
+    "designationFamily": "PROCESSOR",
+    "name": "Hive Source View",
+    "type": "Optional",
+    "purpose": "View upstream hive context without hive authority",
+    "category": "PRODUCTION"
+  },
+  {
+    "id": "LAB_WORKSPACE",
+    "designationFamily": "LAB",
+    "name": "Lab Workspace",
+    "type": "Core",
+    "purpose": "Access laboratory quality-testing workspace",
+    "category": "QUALITY"
+  },
+  {
+    "id": "SAMPLE_INTAKE",
+    "designationFamily": "LAB",
+    "name": "Sample Intake",
+    "type": "Core",
+    "purpose": "Receive and register samples linked to eligible honey batches",
+    "category": "QUALITY"
+  },
+  {
+    "id": "SAMPLE_IDENTIFICATION",
+    "designationFamily": "LAB",
+    "name": "Sample Identification",
+    "type": "Core",
+    "purpose": "Maintain sample identity and custody references",
+    "category": "QUALITY"
+  },
+  {
+    "id": "TEST_ASSIGNMENT",
+    "designationFamily": "LAB",
+    "name": "Test Assignment",
+    "type": "Core",
+    "purpose": "Select/assign supported laboratory tests",
+    "category": "QUALITY"
+  },
+  {
+    "id": "TEST_EXECUTION",
+    "designationFamily": "LAB",
+    "name": "Test Execution",
+    "type": "Core",
+    "purpose": "Record execution of assigned tests",
+    "category": "QUALITY"
+  },
+  {
+    "id": "TEST_RESULT_ENTRY",
+    "designationFamily": "LAB",
+    "name": "Test Result Entry",
+    "type": "Core",
+    "purpose": "Enter measured laboratory results",
+    "category": "QUALITY"
+  },
+  {
+    "id": "RESULT_EVIDENCE",
+    "designationFamily": "LAB",
+    "name": "Result Evidence",
+    "type": "Core",
+    "purpose": "Attach test reports and supporting evidence",
+    "category": "QUALITY"
+  },
+  {
+    "id": "SAMPLE_HISTORY",
+    "designationFamily": "LAB",
+    "name": "Sample History",
+    "type": "Core",
+    "purpose": "View sample and test history",
+    "category": "QUALITY"
+  },
+  {
+    "id": "BATCH_QUALITY_CONTEXT",
+    "designationFamily": "LAB",
+    "name": "Batch Quality Context",
+    "type": "Core",
+    "purpose": "View permitted batch context for testing",
+    "category": "QUALITY"
+  },
+  {
+    "id": "RESULT_REVIEW",
+    "designationFamily": "LAB",
+    "name": "Result Review",
+    "type": "Optional",
+    "purpose": "Review entered results",
+    "category": "QUALITY"
+  },
+  {
+    "id": "QUALITY_RECOMMENDATION",
+    "designationFamily": "LAB",
+    "name": "Quality Recommendation",
+    "type": "Optional",
+    "purpose": "Provide laboratory recommendation",
+    "category": "QUALITY"
+  },
+  {
+    "id": "LAB_DEVICE_RECORDING",
+    "designationFamily": "LAB",
+    "name": "Lab Device Recording",
+    "type": "Optional",
+    "purpose": "Record instrument/device metadata",
+    "category": "QUALITY"
+  },
+  {
+    "id": "LAB_EQUIPMENT_MANAGEMENT",
+    "designationFamily": "LAB",
+    "name": "Lab Equipment Management",
+    "type": "Optional",
+    "purpose": "Manage laboratory equipment records",
+    "category": "QUALITY"
+  },
+  {
+    "id": "CALIBRATION_RECORDING",
+    "designationFamily": "LAB",
+    "name": "Calibration Recording",
+    "type": "Optional",
+    "purpose": "Record calibration/verification information",
+    "category": "QUALITY"
+  },
+  {
+    "id": "MULTI_TEST_MANAGEMENT",
+    "designationFamily": "LAB",
+    "name": "Multi-Test Management",
+    "type": "Advanced",
+    "purpose": "Advanced laboratory capability: Multi-Test Management",
+    "category": "QUALITY"
+  },
+  {
+    "id": "SAMPLE_PRIORITY_MANAGEMENT",
+    "designationFamily": "LAB",
+    "name": "Sample Priority Management",
+    "type": "Advanced",
+    "purpose": "Advanced laboratory capability: Sample Priority Management",
+    "category": "QUALITY"
+  },
+  {
+    "id": "CHAIN_OF_CUSTODY_MANAGEMENT",
+    "designationFamily": "LAB",
+    "name": "Chain of Custody Management",
+    "type": "Advanced",
+    "purpose": "Advanced laboratory capability: Chain of Custody Management",
+    "category": "QUALITY"
+  },
+  {
+    "id": "REPORT_GENERATION",
+    "designationFamily": "LAB",
+    "name": "Laboratory Report Generation",
+    "type": "Advanced",
+    "purpose": "Advanced laboratory capability: Laboratory Report Generation",
+    "category": "QUALITY"
+  },
+  {
+    "id": "RESULT_COMPARISON",
+    "designationFamily": "LAB",
+    "name": "Result Comparison / Trend Review",
+    "type": "Advanced",
+    "purpose": "Advanced laboratory capability: Result Comparison / Trend Review",
+    "category": "QUALITY"
+  },
+  {
+    "id": "METHOD_MANAGEMENT",
+    "designationFamily": "LAB",
+    "name": "Test Method Management",
+    "type": "Advanced",
+    "purpose": "Advanced laboratory capability: Test Method Management",
+    "category": "QUALITY"
+  },
+  {
+    "id": "DISTRIBUTION_WORKSPACE",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Distribution Workspace",
+    "type": "Core",
+    "purpose": "Access dispatch, shipment and delivery operations",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "INVENTORY_VIEW",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Inventory View",
+    "type": "Core",
+    "purpose": "View eligible packaged products available for dispatch",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "ORDER_INTAKE",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Order Intake",
+    "type": "Core",
+    "purpose": "Receive and manage dispatch orders",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "DISPATCH_PLANNING",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Dispatch Planning",
+    "type": "Core",
+    "purpose": "Plan shipments, quantities and destinations",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "PACKAGE_ALLOCATION",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Package Allocation",
+    "type": "Core",
+    "purpose": "Allocate actual packages to a dispatch",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "SHIPMENT_CREATE",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Shipment Creation",
+    "type": "Core",
+    "purpose": "Create shipment records",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "SHIPMENT_UPDATE",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Shipment Updates",
+    "type": "Core",
+    "purpose": "Update shipment status and operational details",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "DELIVERY_TRACKING",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Delivery Tracking",
+    "type": "Core",
+    "purpose": "Track delivery progress",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "DELIVERY_CONFIRMATION",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Delivery Confirmation",
+    "type": "Core",
+    "purpose": "Record actual delivery confirmation",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "DISTRIBUTION_HISTORY",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Distribution History",
+    "type": "Core",
+    "purpose": "View dispatch and delivery history",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "CUSTOMER_RECIPIENT_MANAGEMENT",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Recipient Management",
+    "type": "Optional",
+    "purpose": "Manage approved recipient/customer delivery details",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "ROUTE_PLANNING",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Route Planning",
+    "type": "Optional",
+    "purpose": "Plan routes and delivery sequences",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "MULTI_STOP_DISPATCH",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Multi-Stop Dispatch",
+    "type": "Optional",
+    "purpose": "Manage dispatches with multiple delivery stops",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "TRANSPORT_MANAGEMENT",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Transport Management",
+    "type": "Optional",
+    "purpose": "Manage assigned transport/carrier information",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "DRIVER_ASSIGNMENT",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Driver Assignment",
+    "type": "Optional",
+    "purpose": "Assign dispatches to drivers",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "PROOF_OF_DELIVERY",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Proof of Delivery",
+    "type": "Optional",
+    "purpose": "Capture delivery evidence",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "RETURN_MANAGEMENT",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Return Management",
+    "type": "Optional",
+    "purpose": "Manage delivery returns and failed deliveries",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "DELIVERY_EXCEPTION_MANAGEMENT",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Delivery Exception Management",
+    "type": "Optional",
+    "purpose": "Record and resolve delivery exceptions",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "DISTRIBUTION_ANALYTICS",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Distribution Analytics",
+    "type": "Optional",
+    "purpose": "View distribution performance and history",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "PUBLIC_VERIFICATION_VIEW",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Public Verification View",
+    "type": "Optional",
+    "purpose": "Open public product verification information without managing verification",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "QR_REFERENCE_VIEW",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "QR Reference View",
+    "type": "Optional",
+    "purpose": "View package QR/public reference for dispatch documentation",
+    "category": "FULFILLMENT"
+  },
+  {
+    "id": "CERTIFICATE_GENERATION",
+    "designationFamily": "LAB",
+    "name": "Certificate Generation",
+    "type": "Advanced",
+    "purpose": "Generate certificates from approved laboratory reports",
+    "category": "QUALITY"
+  },
+  {
+    "id": "PACKAGE_QR_VALIDATE",
+    "designationFamily": "DISTRIBUTOR",
+    "name": "Package QR Validation",
+    "type": "Optional",
+    "purpose": "Validate package QR references before dispatch",
+    "category": "FULFILLMENT"
+  }
+];

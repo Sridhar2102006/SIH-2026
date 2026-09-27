@@ -1,0 +1,187 @@
+[
+  {
+    "designationFamily": "BEEKEEPER",
+    "policy": "Designation",
+    "rule": "Beekeeper is a work identity; it does not directly grant every feature."
+  },
+  {
+    "designationFamily": "BEEKEEPER",
+    "policy": "Authorization",
+    "rule": "Effective permissions are derived from confirmed capabilities + policy + workspace/resource scope."
+  },
+  {
+    "designationFamily": "BEEKEEPER",
+    "policy": "Base focus",
+    "rule": "Hive-centric: manage, inspect, observe, capture evidence and review hive history."
+  },
+  {
+    "designationFamily": "BEEKEEPER",
+    "policy": "Optional health",
+    "rule": "Bee Health Scan is enabled only when the user confirms frame/colony screening work."
+  },
+  {
+    "designationFamily": "BEEKEEPER",
+    "policy": "Optional monitoring",
+    "rule": "Connected Hive Monitoring is enabled only when the user confirms use of connected sensors."
+  },
+  {
+    "designationFamily": "BEEKEEPER",
+    "policy": "Optional collection",
+    "rule": "Honey Collection is enabled only when the user confirms harvesting/collection work."
+  },
+  {
+    "designationFamily": "BEEKEEPER",
+    "policy": "Optional devices",
+    "rule": "Device Management is a technical extension; not shown by default."
+  },
+  {
+    "designationFamily": "BEEKEEPER",
+    "policy": "Navigation",
+    "rule": "Navigation changes compositionally with capabilities; do not show empty role modules."
+  },
+  {
+    "designationFamily": "BEEKEEPER",
+    "policy": "Dashboard",
+    "rule": "Dashboard modules are permission/data driven, not a single hardcoded Beekeeper dashboard."
+  },
+  {
+    "designationFamily": "BEEKEEPER",
+    "policy": "Forbidden by default",
+    "rule": "Quality, Processing, Packaging, Verification, Distribution, QR management and technical proof are not Beekeeper defaults."
+  },
+  {
+    "designationFamily": "BEEKEEPER",
+    "policy": "Security",
+    "rule": "Backend authorization is authoritative; frontend visibility is not an authorization boundary."
+  },
+  {
+    "designationFamily": "PROCESSOR",
+    "policy": "Designation",
+    "rule": "Processor is a facility production identity; it does not directly grant Hive management or Quality decisions."
+  },
+  {
+    "designationFamily": "PROCESSOR",
+    "policy": "Authorization",
+    "rule": "Permissions are derived from confirmed processing capabilities + policy + workspace scope."
+  },
+  {
+    "designationFamily": "PROCESSOR",
+    "policy": "Base focus",
+    "rule": "Batch intake, centrifugal extraction, settling tank logs, evidence capture and batch advancement."
+  },
+  {
+    "designationFamily": "PROCESSOR",
+    "policy": "Optional split/merge",
+    "rule": "Batch Split / Merge is enabled only when multi-lot combining is confirmed."
+  },
+  {
+    "designationFamily": "PROCESSOR",
+    "policy": "Quality boundary",
+    "rule": "Processor prepares Quality Handoffs but cannot certify or make quality pass/fail decisions."
+  },
+  {
+    "designationFamily": "PROCESSOR",
+    "policy": "Packaging boundary",
+    "rule": "Processor prepares Packaging Handoffs but does not generate consumer QR identities without packaging authority."
+  },
+  {
+    "designationFamily": "LAB",
+    "policy": "Designation",
+    "rule": "Lab is a laboratory work identity; it does not automatically grant every Quality, Verification or Packaging action."
+  },
+  {
+    "designationFamily": "LAB",
+    "policy": "Core responsibility",
+    "rule": "Receive/identify samples, perform configured tests, record results and preserve laboratory evidence."
+  },
+  {
+    "designationFamily": "LAB",
+    "policy": "Result boundary",
+    "rule": "Entering or reviewing a laboratory result is distinct from a final business quality decision."
+  },
+  {
+    "designationFamily": "LAB",
+    "policy": "Quality boundary",
+    "rule": "Lab capabilities do not automatically grant QUALITY_DECISION, BATCH_VERIFY or release authority."
+  },
+  {
+    "designationFamily": "LAB",
+    "policy": "Traceability",
+    "rule": "Lab users see only the batch/source context necessary for authorized testing."
+  },
+  {
+    "designationFamily": "LAB",
+    "policy": "Evidence",
+    "rule": "Original test evidence and result history should be preserved; edits require audit history."
+  },
+  {
+    "designationFamily": "LAB",
+    "policy": "Measurements",
+    "rule": "The system must not invent laboratory readings, limits, certifications or pass/fail outcomes."
+  },
+  {
+    "designationFamily": "LAB",
+    "policy": "Equipment",
+    "rule": "Instrument/equipment controls are optional extensions and should not appear for every Lab user."
+  },
+  {
+    "designationFamily": "LAB",
+    "policy": "Dashboard",
+    "rule": "Dashboard modules are composed from capabilities, permissions, pending samples and actual lab data."
+  },
+  {
+    "designationFamily": "LAB",
+    "policy": "Security",
+    "rule": "Backend authorization is authoritative; frontend hiding is not a security control."
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "policy": "Designation",
+    "rule": "Dispatch/Distributor describes distribution work; it does not automatically grant Packaging, Quality, Verification or financial authority."
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "policy": "Core responsibility",
+    "rule": "Move eligible packaged products from dispatch planning through delivery confirmation while preserving traceability."
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "policy": "Inventory boundary",
+    "rule": "Inventory visibility does not grant permission to edit package production or packaging records."
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "policy": "Traceability boundary",
+    "rule": "Distributor can view permitted batch/product lineage but cannot alter upstream hive, collection, processing or quality records."
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "policy": "Verification boundary",
+    "rule": "Viewing public verification is different from creating/revoking QR records or performing batch verification."
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "policy": "Recipient data",
+    "rule": "Recipient/customer data must be scoped to the user's workspace and operational need."
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "policy": "Delivery evidence",
+    "rule": "Proof of delivery must represent actual evidence; the system must not fabricate signatures, locations or timestamps."
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "policy": "Returns",
+    "rule": "Returns do not automatically modify batch verification or quality status; downstream workflows must determine the effect."
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "policy": "Dashboard",
+    "rule": "Compose the dashboard from actual distribution capabilities, pending work and shipment state."
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "policy": "Security",
+    "rule": "Backend authorization is authoritative; frontend visibility is not the security boundary."
+  }
+]

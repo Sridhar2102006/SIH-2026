@@ -1,0 +1,436 @@
+[
+  {
+    "designationFamily": "BEEKEEPER",
+    "question": "What do you work with?",
+    "answerSignal": "Hives / bee colonies",
+    "capabilityTrigger": "HIVE_MANAGEMENT",
+    "resultingFeatures": "My Hives, Create/Edit Hive, Hive History"
+  },
+  {
+    "designationFamily": "BEEKEEPER",
+    "question": "What do you do with your hives?",
+    "answerSignal": "Inspect colonies",
+    "capabilityTrigger": "HIVE_INSPECTION",
+    "resultingFeatures": "Inspect Hive, Inspection History"
+  },
+  {
+    "designationFamily": "BEEKEEPER",
+    "question": "What do you record during field work?",
+    "answerSignal": "Observations / notes",
+    "capabilityTrigger": "BEE_OBSERVATION",
+    "resultingFeatures": "Add Observation, Hive History"
+  },
+  {
+    "designationFamily": "BEEKEEPER",
+    "question": "Do you capture photos/evidence?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "EVIDENCE_CAPTURE",
+    "resultingFeatures": "Capture Evidence, Evidence Gallery"
+  },
+  {
+    "designationFamily": "BEEKEEPER",
+    "question": "Do you inspect frames for possible bee-health issues?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "BEE_HEALTH_SCAN",
+    "resultingFeatures": "Capture Frame, Bee Health Scan, Health History"
+  },
+  {
+    "designationFamily": "BEEKEEPER",
+    "question": "Do you use connected sensors on hives?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "CONNECTED_HIVE_MONITORING",
+    "resultingFeatures": "Hive Conditions, Sensor History, Device Status"
+  },
+  {
+    "designationFamily": "BEEKEEPER",
+    "question": "Do you manage/assign the hive devices?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "HIVE_DEVICE_MANAGEMENT",
+    "resultingFeatures": "Assign Device, Device Test, Diagnostics"
+  },
+  {
+    "designationFamily": "BEEKEEPER",
+    "question": "Do you harvest honey?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "HONEY_COLLECTION",
+    "resultingFeatures": "Honey Collection, Collection History"
+  },
+  {
+    "designationFamily": "BEEKEEPER",
+    "question": "Do you link harvest records to honey batches?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "COLLECTION_BATCH_LINK",
+    "resultingFeatures": "Link Collection to Batch"
+  },
+  {
+    "designationFamily": "BEEKEEPER",
+    "question": "Do you manage advanced hive organization?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "ADVANCED_HIVE_MANAGEMENT",
+    "resultingFeatures": "Advanced Hive Organization"
+  },
+  {
+    "designationFamily": "PROCESSOR",
+    "question": "What do you work with?",
+    "answerSignal": "Harvested honey / extraction facility",
+    "capabilityTrigger": "PROCESSING_MANAGEMENT",
+    "resultingFeatures": "Processing Workspace, Start/Edit Processing, Processing History"
+  },
+  {
+    "designationFamily": "PROCESSOR",
+    "question": "Do you intake harvested honey batches?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "BATCH_INTAKE",
+    "resultingFeatures": "Batch Intake Queue, Accept Batch for Processing"
+  },
+  {
+    "designationFamily": "PROCESSOR",
+    "question": "Do you record processing steps (filtration, settling, temperature)?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "PROCESSING_STEP_RECORD",
+    "resultingFeatures": "Record Processing Step, Edit Processing Step"
+  },
+  {
+    "designationFamily": "PROCESSOR",
+    "question": "Do you record extraction parameters (speed, moisture, tank pressure)?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "PROCESSING_PARAMETERS",
+    "resultingFeatures": "Processing Parameters Recording"
+  },
+  {
+    "designationFamily": "PROCESSOR",
+    "question": "Do you capture processing evidence photos?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "PROCESSING_EVIDENCE",
+    "resultingFeatures": "Processing Evidence Capture, Evidence Gallery"
+  },
+  {
+    "designationFamily": "PROCESSOR",
+    "question": "Do you trace batches back to harvest collections?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "BATCH_TRACEABILITY",
+    "resultingFeatures": "Batch Traceability, Source Collection Details"
+  },
+  {
+    "designationFamily": "PROCESSOR",
+    "question": "Do you split or combine extraction batches?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "BATCH_SPLIT_MERGE",
+    "resultingFeatures": "Split Batch, Merge Batches"
+  },
+  {
+    "designationFamily": "PROCESSOR",
+    "question": "Do you prepare batches for Quality lab testing?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "QUALITY_HANDOFF",
+    "resultingFeatures": "Prepare Quality Handoff, Quality Handoff Status"
+  },
+  {
+    "designationFamily": "PROCESSOR",
+    "question": "Do you prepare completed batches for Bottling / Packaging?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "PACKAGING_HANDOFF",
+    "resultingFeatures": "Prepare Packaging Handoff, Packaging Handoff Status"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "What do you work with?",
+    "answerSignal": "Laboratory samples / honey testing",
+    "capabilityTrigger": "LAB_WORKSPACE",
+    "resultingFeatures": "Lab Workspace"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you receive and register samples?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "SAMPLE_INTAKE",
+    "resultingFeatures": "Sample Queue, Register/Accept Sample"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you maintain sample identity and custody?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "SAMPLE_IDENTIFICATION",
+    "resultingFeatures": "Sample Identity, Chain of Custody"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you select or assign laboratory tests?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "TEST_ASSIGNMENT",
+    "resultingFeatures": "Test Plan, Assign Laboratory Test"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you perform laboratory tests?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "TEST_EXECUTION",
+    "resultingFeatures": "Start Test, Record Reading, Complete Test"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you enter measured results?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "TEST_RESULT_ENTRY",
+    "resultingFeatures": "Result Entry, Edit Result"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you attach reports/readings as evidence?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "RESULT_EVIDENCE",
+    "resultingFeatures": "Result Evidence"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you need previous sample/test history?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "SAMPLE_HISTORY",
+    "resultingFeatures": "Sample History"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you need source batch context?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "BATCH_QUALITY_CONTEXT",
+    "resultingFeatures": "Batch Quality Context"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you review another person's results?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "RESULT_REVIEW",
+    "resultingFeatures": "Result Review"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you provide a laboratory recommendation?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "QUALITY_RECOMMENDATION",
+    "resultingFeatures": "Lab Recommendation"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you record instrument information?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "LAB_DEVICE_RECORDING",
+    "resultingFeatures": "Instrument Metadata"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you manage lab equipment?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "LAB_EQUIPMENT_MANAGEMENT",
+    "resultingFeatures": "Equipment Register"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you record calibration information?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "CALIBRATION_RECORDING",
+    "resultingFeatures": "Calibration Records"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you prioritize samples based on urgency?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "SAMPLE_PRIORITY_MANAGEMENT",
+    "resultingFeatures": "Priority Queue, Prioritize Sample"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you maintain formal sample custody events?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "CHAIN_OF_CUSTODY_MANAGEMENT",
+    "resultingFeatures": "Custody Timeline, Manage Chain of Custody"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you run several tests under one sample plan?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "MULTI_TEST_MANAGEMENT",
+    "resultingFeatures": "Multi-Test Plan, Multi-Test Progress"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you compare current results with previous results?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "RESULT_COMPARISON",
+    "resultingFeatures": "Result Comparison, Historical Trend Review"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you generate laboratory reports?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "REPORT_GENERATION",
+    "resultingFeatures": "Generate Lab Report, Report History"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you select from approved test methods?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "METHOD_MANAGEMENT",
+    "resultingFeatures": "Test Method Library, Select Test Method"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you review other analysts' results?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "RESULT_REVIEW",
+    "resultingFeatures": "Review Result"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you provide a laboratory recommendation?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "QUALITY_RECOMMENDATION",
+    "resultingFeatures": "Provide Lab Recommendation"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you manage instruments/equipment?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "LAB_EQUIPMENT_MANAGEMENT",
+    "resultingFeatures": "Equipment Register, Manage Equipment"
+  },
+  {
+    "designationFamily": "LAB",
+    "question": "Do you record calibration information?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "CALIBRATION_RECORDING",
+    "resultingFeatures": "Calibration Records, Record Calibration"
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "question": "What do you handle?",
+    "answerSignal": "Packaged honey / finished products",
+    "capabilityTrigger": "DISTRIBUTION_WORKSPACE",
+    "resultingFeatures": "Distribution Workspace"
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "question": "Do you receive orders for dispatch?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "ORDER_INTAKE",
+    "resultingFeatures": "Dispatch Queue, Create/Edit Dispatch"
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "question": "Do you decide what packages go into a shipment?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "PACKAGE_ALLOCATION",
+    "resultingFeatures": "Allocate Packages"
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "question": "Do you plan shipments?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "DISPATCH_PLANNING",
+    "resultingFeatures": "Dispatch Plan"
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "question": "Do you create shipment records?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "SHIPMENT_CREATE",
+    "resultingFeatures": "Create Shipment"
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "question": "Do you update shipment status?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "SHIPMENT_UPDATE",
+    "resultingFeatures": "Shipment Status, Update Shipment"
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "question": "Do you track deliveries?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "DELIVERY_TRACKING",
+    "resultingFeatures": "Delivery Tracking"
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "question": "Do you confirm actual delivery?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "DELIVERY_CONFIRMATION",
+    "resultingFeatures": "Confirm Delivery"
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "question": "Do you need batch/product traceability?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "BATCH_TRACEABILITY",
+    "resultingFeatures": "Batch Traceability"
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "question": "Do you manage recipient/customer details?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "CUSTOMER_RECIPIENT_MANAGEMENT",
+    "resultingFeatures": "Recipient Directory"
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "question": "Do you plan delivery routes?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "ROUTE_PLANNING",
+    "resultingFeatures": "Route Planner"
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "question": "Do you handle multiple stops in one dispatch?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "MULTI_STOP_DISPATCH",
+    "resultingFeatures": "Multi-Stop Dispatch"
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "question": "Do you manage transport/carriers?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "TRANSPORT_MANAGEMENT",
+    "resultingFeatures": "Transport Register"
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "question": "Do you assign drivers?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "DRIVER_ASSIGNMENT",
+    "resultingFeatures": "Driver Assignment"
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "question": "Do you collect proof of delivery?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "PROOF_OF_DELIVERY",
+    "resultingFeatures": "Proof of Delivery"
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "question": "Do you handle returns?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "RETURN_MANAGEMENT",
+    "resultingFeatures": "Returns Queue"
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "question": "Do you resolve delivery exceptions?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "DELIVERY_EXCEPTION_MANAGEMENT",
+    "resultingFeatures": "Exception Management"
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "question": "Do you use distribution analytics?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "DISTRIBUTION_ANALYTICS",
+    "resultingFeatures": "Distribution Analytics"
+  },
+  {
+    "designationFamily": "DISTRIBUTOR",
+    "question": "Do you need to view public verification/QR references?",
+    "answerSignal": "Yes",
+    "capabilityTrigger": "PUBLIC_VERIFICATION_VIEW",
+    "resultingFeatures": "Public Verification"
+  }
+]

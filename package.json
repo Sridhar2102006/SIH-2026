@@ -1,0 +1,31 @@
+{
+  "name": "sih-2026",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "node tests/runAllTests.cjs",
+    "test:dispatch": "node tests/dispatchMasterProductionSuite.test.js",
+    "test:lab": "node tests/labMasterProductionSuite.test.js",
+    "test:processor": "node tests/processorMasterProductionSuite.test.js",
+    "test:beekeeper": "node tests/beekeeperMasterProductionSuite.test.js",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "test:all": "node tests/runAllTests.cjs",
+    "test:onboarding": "node tests/masterOnboardingAdaptiveEngine.test.js"
+  },
+  "dependencies": {
+    "lucide-react": "^1.47.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "oxlint": "^1.81.0",
+    "vite": "^8.3.0"
+  }
+}
