@@ -37,7 +37,11 @@ export const FrameDetailModal = ({
 }) => {
   const { frames = [], hives = [], apiaries = [] } = useAppState();
 
-  const frame = frames.find(f => f.id === frameId || f.traceabilityCode === frameId) || frames[0];
+  const frame = frames.find(f => 
+    f.id === frameId || 
+    f.traceabilityCode === frameId ||
+    (frameId && f.traceabilityCode && f.traceabilityCode.toUpperCase().trim() === String(frameId).toUpperCase().trim())
+  ) || (frameId ? null : frames[0]);
 
   if (!isOpen || !frame) return null;
 

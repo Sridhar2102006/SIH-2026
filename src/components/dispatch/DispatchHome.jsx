@@ -3,6 +3,8 @@
  *
  * Core Responsibility: "What needs to leave today?"
  *
+ * PRIMARY MANDATE: Manual Honey Journey Validation → Consumer QR Generation
+ *
  * Visual Palette:
  * Pure Honey (#D99A24) · Light Blue (#7AA7C7) · Light Green (#8AA681) · Golden (#C9962E) · Warm Cream (#FFF9EF) · Deep Cocoa (#34261B)
  */
@@ -33,13 +35,16 @@ import {
 export const DispatchHome = ({
   onNavigateToPackages,
   onNavigateToShipments,
-  onNavigateToTracking
+  onNavigateToTracking,
+  onNavigateToValidateQr
 }) => {
   const {
     session,
-    dispatchPackages,
-    dispatchShipments,
-    dispatchAuditLog,
+    dispatchPackages = [],
+    dispatchShipments = [],
+    dispatchAuditLog = [],
+    labReports = [],
+    setActiveTab,
     showToast
   } = useAppState();
 
@@ -51,6 +56,7 @@ export const DispatchHome = ({
     p.status === PACKAGE_STATUSES.READY_FOR_DISPATCH || p.status === PACKAGE_STATUSES.ALLOCATED
   );
   const qrValidatedPackages = readyPackages.filter(p => p.isQrValidated);
+  const coaPackages = dispatchPackages.filter(p => p.coaDocumentId || p.labReport);
   const activeShipments = dispatchShipments.filter(s =>
     s.status !== SHIPMENT_STATUSES.DELIVERED && s.status !== SHIPMENT_STATUSES.CANCELLED
   );
@@ -102,24 +108,48 @@ export const DispatchHome = ({
           Final Package Verification · Physical QR Authentication · Shipment Staging & Delivery Tracking
         </p>
 
-        {/* Primary Action Row */}
+        {/* Primary Action — Core Dispatch Mandate */}
+        <button
+          className="btn btn-primary"
+          onClick={() => onNavigateToValidateQr ? onNavigateToValidateQr() : onNavigateToPackages()}
+          style={{
+            backgroundColor: '#D99A24',
+            borderColor: '#D99A24',
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            padding: '14px 16px',
+            borderRadius: '12px',
+            fontSize: '15px',
+            fontWeight: 800,
+            marginBottom: '8px'
+          }}
+        >
+          <ShieldCheck size={20} />
+          <span>Validate Honey Journey & Generate QR</span>
+          <ArrowRight size={16} style={{ marginLeft: '4px' }} />
+        </button>
+
+        {/* Secondary Actions */}
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <button
-            className="btn btn-primary"
+            className="btn btn-secondary"
             onClick={() => setIsScannerOpen(true)}
             style={{
-              backgroundColor: '#D99A24',
-              borderColor: '#D99A24',
               flex: 1,
-              minWidth: '150px',
+              minWidth: '130px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              padding: '10px 16px'
+              padding: '9px 14px',
+              borderColor: '#7AA7C7',
+              color: '#0369A1'
             }}
           >
-            <QrCode size={18} />
+            <QrCode size={16} />
             <span>Scan Package QR</span>
           </button>
           <button
@@ -127,17 +157,15 @@ export const DispatchHome = ({
             onClick={() => setIsCreateShipmentOpen(true)}
             style={{
               flex: 1,
-              minWidth: '150px',
+              minWidth: '130px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              padding: '10px 16px',
-              borderColor: '#7AA7C7',
-              color: '#0369A1'
+              padding: '9px 14px'
             }}
           >
-            <Plus size={18} />
+            <Plus size={16} />
             <span>Create Shipment</span>
           </button>
         </div>
@@ -249,6 +277,45 @@ export const DispatchHome = ({
             </div>
           </div>
         </div>
+
+        {/* Quality Clearance Notification Card */}
+        {coaPackages.length > 0 && (
+          <div
+            onClick={() => {
+              if (setActiveTab) setActiveTab('dispatch');
+            }}
+            style={{
+              marginTop: '12px',
+              padding: '14px 18px',
+              borderRadius: '12px',
+              backgroundColor: '#ECFDF5',
+              border: '1.5px solid #86EFAC',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              cursor: 'pointer',
+              boxShadow: '0 2px 6px rgba(16, 185, 129, 0.06)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '8px', backgroundColor: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669', border: '1px solid #BBF7D0' }}>
+                <ShieldCheck size={20} />
+              </div>
+              <div>
+                <strong style={{ fontSize: '14px', color: '#064E3B' }}>
+                  {coaPackages.length} Finished Packages Cleared by Official Laboratory CoA
+                </strong>
+                <div style={{ fontSize: '12px', color: '#047857', marginTop: '2px' }}>
+                  Analytical compliance verified under NABL ISO/IEC 17025. Ready for consumer QR generation & carrier consignment release.
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12.5px', color: '#059669', fontWeight: 700 }}>
+              <span>View Clearances</span>
+              <ArrowRight size={14} />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 3. Today's Scheduled Shipments */}

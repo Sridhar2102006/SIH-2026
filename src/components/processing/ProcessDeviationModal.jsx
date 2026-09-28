@@ -87,7 +87,7 @@ export const ProcessDeviationModal = ({
 
   return (
     <div className="proc-modal-backdrop" onClick={onClose}>
-      <div className="proc-modal-sheet card" onClick={e => e.stopPropagation()}>
+      <div className="proc-modal-sheet" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="proc-modal-header">
           <div>

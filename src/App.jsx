@@ -46,6 +46,12 @@ import { HoneyJourneyView } from './components/beekeeper/HoneyJourneyView';
 import { AccessDeniedView } from './components/common/AccessDeniedView';
 import { ProcessorHome } from './components/processing/ProcessorHome';
 import { LabHome } from './components/lab/LabHome';
+import { LabReportsView } from './components/lab/LabReportsView';
+import { RegulatorySubmissionsView } from './components/lab/RegulatorySubmissionsView';
+import { EquipmentRegisterView } from './components/lab/EquipmentRegisterView';
+import { MethodRegisterView } from './components/lab/MethodRegisterView';
+import { AuditLogView } from './components/lab/AuditLogView';
+import { ReportCenterView } from './components/reports/ReportCenterView';
 import { RouteRegistry } from './services/routeRegistry';
 
 const MainApp = () => {
@@ -234,30 +240,19 @@ const MainApp = () => {
   }
 
   const userCaps = new Set((session?.capabilities || []).map(c => String(c).toUpperCase()));
-  const isProcessorOrLabOrDistributor =
-    userCaps.has('PROCESSING_MANAGEMENT') ||
-    userCaps.has('LAB_WORKSPACE') ||
-    userCaps.has('DISPATCH_PLANNING') ||
-    userCaps.has('DISTRIBUTION_WORKSPACE') ||
-    userCaps.has('SHIPMENT_DISPATCH') ||
-    userCaps.has('PACKAGE_QR_VALIDATE') ||
-    userCaps.has('SAMPLE_INTAKE') ||
-    userCaps.has('TEST_EXECUTION');
-  const isPureBeekeeper = !isProcessorOrLabOrDistributor;
-  const isPureProcessor = (userCaps.has('PROCESSING_MANAGEMENT') || userCaps.has('BATCH_INTAKE')) &&
-    !userCaps.has('HIVE_MANAGEMENT') &&
-    !userCaps.has('LAB_WORKSPACE') &&
-    !userCaps.has('DISPATCH_PLANNING') &&
-    !userCaps.has('DISTRIBUTION_WORKSPACE');
-  const isPureLab = (userCaps.has('LAB_WORKSPACE') || userCaps.has('SAMPLE_INTAKE') || userCaps.has('TEST_EXECUTION')) &&
-    !userCaps.has('HIVE_MANAGEMENT') &&
-    !userCaps.has('PROCESSING_MANAGEMENT') &&
-    !userCaps.has('DISPATCH_PLANNING') &&
-    !userCaps.has('DISTRIBUTION_WORKSPACE');
-  const isPureDistributor = (userCaps.has('DISTRIBUTION_WORKSPACE') || userCaps.has('DISPATCH_PLANNING') || userCaps.has('SHIPMENT_DISPATCH') || userCaps.has('PACKAGE_QR_VALIDATE')) &&
-    !userCaps.has('HIVE_MANAGEMENT') &&
-    !userCaps.has('PROCESSING_MANAGEMENT') &&
-    !userCaps.has('LAB_WORKSPACE');
+  const activeRole = (
+    session?.activeDesignation ||
+    session?.designations?.[0] ||
+    (userCaps.has('LAB_WORKSPACE') || userCaps.has('TEST_EXECUTION') ? 'LAB_SPECIALIST' :
+     userCaps.has('PROCESSING_MANAGEMENT') || userCaps.has('BATCH_INTAKE') ? 'PROCESSOR' :
+     userCaps.has('DISTRIBUTION_WORKSPACE') || userCaps.has('DISPATCH_PLANNING') ? 'DISTRIBUTOR' :
+     'BEEKEEPER')
+  ).toUpperCase();
+
+  const isRoleBeekeeper = activeRole === 'BEEKEEPER';
+  const isRoleProcessor = activeRole === 'PROCESSOR';
+  const isRoleLab = activeRole === 'LAB_SPECIALIST' || activeRole === 'LAB';
+  const isRoleDistributor = activeRole === 'DISTRIBUTOR' || activeRole === 'DISPATCH';
 
   const renderActiveScreen = () => {
     const effectiveCaps = session?.capabilities?.length
@@ -278,8 +273,7 @@ const MainApp = () => {
 
     switch (activeTab) {
       case 'home':
-        if (isPureBeekeeper) return <BeekeeperHome />;
-        if (isPureProcessor) {
+        if (isRoleProcessor) {
           return (
             <ProcessorHome
               onNavigateToIntake={() => setActiveTab('intake')}
@@ -292,47 +286,71 @@ const MainApp = () => {
             />
           );
         }
-        if (isPureLab) {
+        if (isRoleLab) {
           return (
             <LabHome
               onNavigateToSamples={() => setActiveTab('samples')}
               onNavigateToTests={() => setActiveTab('tests')}
               onNavigateToReview={() => setActiveTab('review')}
+              onNavigateToReports={() => setActiveTab('reports')}
+              onNavigateToRegulatory={() => setActiveTab('regulatory')}
+              onNavigateToEquipment={() => setActiveTab('equipment')}
+              onNavigateToMethods={() => setActiveTab('methods')}
+              onNavigateToAudit={() => setActiveTab('audit')}
             />
           );
         }
-        if (isPureDistributor) {
+        if (isRoleDistributor) {
           return (
             <DispatchHome
               onNavigateToPackages={() => setActiveTab('dispatch')}
               onNavigateToShipments={() => setActiveTab('shipments')}
               onNavigateToTracking={() => setActiveTab('deliveries')}
+              onNavigateToValidateQr={() => setActiveTab('dispatch')}
             />
           );
         }
+        if (isRoleBeekeeper) {
+          return <BeekeeperHome />;
+        }
         return <HomeView />;
       case 'hives':
-        return isPureBeekeeper ? <BeekeeperHivesView /> : <HivesView />;
+        return isRoleBeekeeper ? <BeekeeperHivesView /> : <HivesView />;
       case 'inspections':
       case 'health':
-        return isPureBeekeeper ? <BeekeeperInspectionsView /> : <InspectionsView />;
+        return isRoleBeekeeper ? <BeekeeperInspectionsView /> : <InspectionsView />;
       case 'harvest':
         return <BeekeeperHarvestView />;
       case 'journey':
         return <HoneyJourneyView />;
       case 'honey':
-        return isPureBeekeeper ? <BeekeeperHarvestView /> : <HoneyView />;
+        return isRoleBeekeeper ? <BeekeeperHarvestView /> : <HoneyView />;
       case 'intake':
       case 'processing':
       case 'batches':
-      case 'history':
+      case 'quality':
+      case 'quality-handoff':
         return <ProcessingView />;
+      case 'history':
+        return isRoleLab ? <AuditLogView /> : <ProcessingView />;
+      case 'audit':
+        return <AuditLogView />;
       case 'samples':
         return <SamplesView />;
       case 'tests':
         return <TestsView />;
       case 'review':
         return <ReviewView />;
+      case 'reports':
+        return isRoleLab ? <LabReportsView /> : <ReportCenterView />;
+      case 'report-center':
+        return <ReportCenterView />;
+      case 'regulatory':
+        return <RegulatorySubmissionsView />;
+      case 'equipment':
+        return <EquipmentRegisterView />;
+      case 'methods':
+        return <MethodRegisterView />;
       case 'dispatch':
       case 'orders':
         return <DispatchView initialTab="PACKAGES" />;
@@ -347,14 +365,14 @@ const MainApp = () => {
       case 'more':
         return <MoreView />;
       default:
-        return isPureBeekeeper ? <BeekeeperHome /> : <HomeView />;
+        return isRoleBeekeeper ? <BeekeeperHome /> : <HomeView />;
     }
   };
 
   const getActiveModule = () => {
-    if (['samples', 'tests', 'review'].includes(activeTab) || (activeTab === 'home' && isPureLab)) return 'lab';
-    if (['intake', 'processing', 'batches', 'history'].includes(activeTab) || (activeTab === 'home' && isPureProcessor)) return 'processor';
-    if (['dispatch', 'shipments', 'routes', 'deliveries', 'orders'].includes(activeTab) || (activeTab === 'home' && isPureDistributor)) return 'dispatch';
+    if (['samples', 'tests', 'review', 'reports', 'regulatory', 'equipment', 'methods', 'audit'].includes(activeTab) || (activeTab === 'home' && isRoleLab) || (activeTab === 'history' && isRoleLab)) return 'lab';
+    if (['intake', 'processing', 'batches', 'quality', 'quality-handoff'].includes(activeTab) || (activeTab === 'history' && isRoleProcessor) || (activeTab === 'home' && isRoleProcessor)) return 'processor';
+    if (['dispatch', 'shipments', 'routes', 'deliveries', 'orders'].includes(activeTab) || (activeTab === 'home' && isRoleDistributor)) return 'dispatch';
     return 'beekeeper';
   };
   const activeModule = getActiveModule();

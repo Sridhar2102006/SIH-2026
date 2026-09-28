@@ -92,9 +92,9 @@ export const SamplesView = () => {
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      const matchId = s.id.toLowerCase().includes(q);
-      const matchBatch = s.sourceBatchNumber.toLowerCase().includes(q);
-      const matchTrace = (s.sourceTraceabilityCodes || []).some(c => c.toLowerCase().includes(q));
+      const matchId = (s.id || '').toLowerCase().includes(q);
+      const matchBatch = (s.sourceBatchNumber || '').toLowerCase().includes(q);
+      const matchTrace = (s.sourceTraceabilityCodes || []).some(c => (c || '').toLowerCase().includes(q));
       return matchId || matchBatch || matchTrace;
     }
     return true;

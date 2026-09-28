@@ -15,7 +15,21 @@ const testFiles = [
   'tests/indiaProcessorEngineSuite.test.js',
   'tests/commonProcessorOnboarding.test.js',
   'tests/goldenPathEndToEnd.test.js',
-  'tests/capabilityReconciliationAudit.test.js'
+  'tests/capabilityReconciliationAudit.test.js',
+  'tests/emergencyRecoveryRoleWorkspaces.test.js',
+  'tests/ultraSimpleOnboarding.test.js',
+  'tests/workspaceProfileIdentity.test.js',
+  'tests/secureLaboratoryAuditSystem.test.js',
+  'tests/dummyHoneyJourneySeed.js',
+  'tests/dummyJourneyValidation.test.js',
+  'tests/realDatabaseReadiness.test.js',
+  'tests/processorToLabSubmissionMapping.test.js',
+  'tests/processorToLabEndToEndQASuite.test.js',
+  'tests/labTestCompletionDualDispatch.test.js',
+  'tests/dispatchHoneyJourneyValidationAndQr.test.js',
+  'tests/stateMachineStatusValidation.test.js',
+  'tests/emptyDatabaseBootAndVolume.test.js',
+  'tests/universalQrAndHostedVerification.test.js'
 ];
 
 console.log('====================================================');

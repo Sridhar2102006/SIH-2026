@@ -115,12 +115,16 @@ export const DispatchOnboarding = ({ onComplete, onBack }) => {
       designations: ['DISTRIBUTOR'],
       capabilities: [
         'DISPATCH_PLANNING',
+        'DISTRIBUTION_WORKSPACE',
         'PACKAGE_QR_VALIDATE',
         'SHIPMENT_CREATE',
         'SHIPMENT_RELEASE',
+        'SHIPMENT_DISPATCH',
         'DELIVERY_TRACKING',
         'DELIVERY_CONFIRMATION',
-        ...(form.operatingStates.length > 1 ? ['ROUTE_PLANNING'] : []),
+        'PROOF_OF_DELIVERY',
+        'ROUTE_PLANNING',
+        'BATCH_TRACEABILITY',
         ...(form.buyerTypes.includes('INSTITUTIONAL') || form.buyerTypes.includes('EXPORT')
           ? ['INVENTORY_MANAGEMENT']
           : [])

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * HONEYCHAIN DISPATCH & DISTRIBUTOR DOMAIN SERVICE
  *
  * Core Responsibility: Physical movement of finalized packages from facility to destination.
@@ -238,32 +238,47 @@ export function validateScannedQr({
   // Normalize scanned string: extract packageId or qrCode from URL or direct code
   let parsedPackageId = null;
   let parsedQrId = null;
+  let candidateToken = null;
 
-  if (cleanPayload.includes('/verify/')) {
-    const parts = cleanPayload.split('/verify/');
-    const ref = parts[1]?.split('?')[0]?.trim();
-    // Match package by publicReference or id
-    const foundByRef = packages.find(p => p.publicReference === ref || p.packageId === ref);
-    if (foundByRef) {
-      parsedPackageId = foundByRef.packageId;
-      parsedQrId = foundByRef.qrId;
-    } else {
-      parsedPackageId = ref;
+  if (cleanPayload.includes('verify=') || cleanPayload.includes('ref=') || cleanPayload.includes('packageId=')) {
+    try {
+      const url = new URL(cleanPayload);
+      candidateToken = url.searchParams.get('verify') || url.searchParams.get('ref') || url.searchParams.get('packageId');
+    } catch {
+      const m = cleanPayload.match(/[?&](?:verify|ref|packageId)=([^&#]+)/);
+      if (m) candidateToken = decodeURIComponent(m[1]);
     }
+  } else if (cleanPayload.includes('/verify/')) {
+    const parts = cleanPayload.split('/verify/');
+    candidateToken = parts[1]?.split(/[?&#]/)[0]?.trim();
+  } else if (cleanPayload.includes('/b/')) {
+    const parts = cleanPayload.split('/b/');
+    candidateToken = parts[1]?.split(/[?&#]/)[0]?.trim();
+  } else if (cleanPayload.startsWith('HONEYCHAIN:')) {
+    const parts = cleanPayload.split(':');
+    candidateToken = parts[1] || parts[2];
   } else if (cleanPayload.startsWith('QR-PKG-')) {
     parsedQrId = cleanPayload;
     const foundByQr = packages.find(p => p.qrId === cleanPayload);
     if (foundByQr) parsedPackageId = foundByQr.packageId;
   } else if (cleanPayload.startsWith('PKG-')) {
-    parsedPackageId = cleanPayload;
+    candidateToken = cleanPayload;
   } else {
-    // Check if directly matches a packageId or publicReference
-    const found = packages.find(p => p.packageId === cleanPayload || p.publicReference === cleanPayload);
+    candidateToken = cleanPayload;
+  }
+
+  if (candidateToken && !parsedPackageId) {
+    const found = packages.find(
+      p => p.publicReference === candidateToken ||
+           p.packageId === candidateToken ||
+           p.qrId === candidateToken ||
+           p.tamperSealId === candidateToken
+    );
     if (found) {
       parsedPackageId = found.packageId;
       parsedQrId = found.qrId;
     } else {
-      parsedPackageId = cleanPayload;
+      parsedPackageId = candidateToken;
     }
   }
 
@@ -498,8 +513,13 @@ export function validateShipmentRelease({
  * Initial Pre-Configured Finished Packages Store for Dispatch
  */
 
-export const initialDispatchPackages = [];
+export const initialDispatchPackages = [
+  { id: 'pkg-demo-125', packageId: 'PKG-2026-00125', productName: 'Wildflower Honey', unitGrams: 500, unitDisplay: '500 g', qrId: 'QR-PKG-2026-00125', status: PACKAGE_STATUSES.READY_FOR_DISPATCH, qualityStatus: 'APPROVED', batchId: 'pb-demo-41', batchNumber: 'PB-2026-00041', sourceTraceabilityCodes: ['AP1H001F1'], tamperSealId: 'HC-SEAL-2026-925-J125' },
+  { id: 'pkg-demo-126', packageId: 'PKG-2026-00126', productName: 'Wildflower Honey', unitGrams: 500, unitDisplay: '500 g', qrId: 'QR-PKG-2026-00126', status: PACKAGE_STATUSES.READY_FOR_DISPATCH, qualityStatus: 'APPROVED', batchId: 'pb-demo-41', batchNumber: 'PB-2026-00041', sourceTraceabilityCodes: ['AP1H001F2'], tamperSealId: 'HC-SEAL-2026-925-J126' }
+];
 
-export const initialDispatchShipments = [];
+export const initialDispatchShipments = [
+  { id: 'SHP-2026-00104', status: SHIPMENT_STATUSES.READY, destination: 'Demo destination', carrier: 'Demo carrier', allocatedPackageIds: ['PKG-2026-00125'], validatedPackages: [] }
+];
 
 export const initialDispatchAuditLog = [];

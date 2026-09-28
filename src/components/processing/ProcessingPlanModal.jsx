@@ -54,7 +54,7 @@ export const ProcessingPlanModal = ({
 
   return (
     <div className="proc-modal-backdrop" onClick={onClose}>
-      <div className="proc-modal-sheet proc-modal-lg card" onClick={e => e.stopPropagation()}>
+      <div className="proc-modal-sheet proc-modal-lg" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="proc-modal-header">
           <div>
@@ -193,36 +193,40 @@ export const ProcessingPlanModal = ({
 
         .proc-plan-summary-bar {
           display: flex;
-          background: #FAF6ED;
-          padding: 10px 20px;
-          border-bottom: 1px solid var(--color-divider, #E5DCCB);
-          gap: 16px;
+          background: linear-gradient(135deg, #FFFDF9 0%, #FAF5EB 100%);
+          padding: 14px 24px;
+          border-bottom: 1px solid rgba(217, 119, 6, 0.14);
+          gap: 20px;
           flex-wrap: wrap;
         }
 
         .proc-psb-col {
           display: flex;
           flex-direction: column;
-          gap: 2px;
+          gap: 3px;
         }
 
         .proc-psb-lbl {
-          font-size: 11px;
-          color: var(--color-warm-gray, #6B5B4E);
+          font-size: 10.5px;
+          font-weight: 750;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          color: #8C7355;
         }
 
         .proc-psb-val {
-          font-size: 13px;
-          color: var(--color-deep-cocoa, #2E1F14);
+          font-size: 13.5px;
+          font-weight: 750;
+          color: #2E1F14;
         }
 
         .proc-plan-instruction {
           display: flex;
           gap: 10px;
           background: #FFFBEB;
-          border: 1px solid #FCD34D;
-          border-radius: 8px;
-          padding: 10px 12px;
+          border: 1.5px solid #FCD34D;
+          border-radius: 12px;
+          padding: 12px 14px;
           font-size: 12.5px;
           color: #92400E;
           margin-bottom: 16px;
@@ -235,16 +239,22 @@ export const ProcessingPlanModal = ({
         }
 
         .proc-plan-step-card {
-          border: 1px solid #E5DCCB;
-          border-radius: 10px;
-          background: #FFF;
+          border: 1.5px solid #E5DCCB;
+          border-radius: 12px;
+          background: #FFFFFF;
           overflow: hidden;
-          transition: border-color 0.15s ease;
+          transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 1px 3px rgba(52, 38, 27, 0.04);
+        }
+
+        .proc-plan-step-card:hover {
+          border-color: #D97706;
+          box-shadow: 0 4px 12px rgba(217, 119, 6, 0.08);
         }
 
         .proc-plan-step-card.expanded {
           border-color: #D97706;
-          box-shadow: 0 2px 8px rgba(217, 119, 6, 0.08);
+          box-shadow: 0 4px 16px rgba(217, 119, 6, 0.12);
         }
 
         .proc-psc-header {

@@ -59,7 +59,7 @@ export const BatchHoldModal = ({
 
   return (
     <div className="proc-modal-backdrop" onClick={onClose}>
-      <div className="proc-modal-sheet card" onClick={e => e.stopPropagation()}>
+      <div className="proc-modal-sheet" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="proc-modal-header">
           <div>
@@ -182,40 +182,198 @@ export const BatchHoldModal = ({
       </div>
 
       <style>{`
-        .proc-btn-confirm-hold {
+        .proc-form {
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
           width: 100%;
-          height: 46px;
+        }
+
+        .proc-form-group {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          width: 100%;
+        }
+
+        .proc-label {
           display: flex;
           align-items: center;
-          justify-content: center;
           gap: 8px;
-          background: #D97706;
-          color: white;
-          border: none;
-          border-radius: 10px;
-          font-weight: 600;
-          font-size: 14px;
+          font-size: 13px;
+          font-weight: 750;
+          color: #2E1F14;
+          margin: 0;
+        }
+
+        .proc-label svg {
+          color: #D97706;
+          flex-shrink: 0;
+        }
+
+        .proc-reject-warning {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          padding: 14px 16px;
+          border-radius: 12px;
+          background: #FFFBEB;
+          border: 1.5px solid #F59E0B;
+          color: #92400E;
+        }
+
+        .proc-reject-warning svg {
+          color: #D97706;
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+
+        .proc-reject-warning strong {
+          display: block;
+          font-size: 13.5px;
+          font-weight: 750;
+          color: #B45309;
+          margin-bottom: 3px;
+        }
+
+        .proc-reject-warning p {
+          margin: 0;
+          font-size: 12.5px;
+          line-height: 1.4;
+          color: #92400E;
+        }
+
+        .proc-radio-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          width: 100%;
+        }
+
+        .proc-radio-card {
+          display: flex;
+          align-items: flex-start;
+          gap: 14px;
+          padding: 14px 16px;
+          border-radius: 12px;
+          border: 1.5px solid #E5DCCB;
+          background: #FFFFFF;
+          cursor: pointer;
+          transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 1px 3px rgba(52, 38, 27, 0.04);
+          box-sizing: border-box;
+        }
+
+        .proc-radio-card:hover {
+          border-color: #D97706;
+          background: #FFFDF9;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(217, 119, 6, 0.08);
+        }
+
+        .proc-radio-card.active {
+          border-color: #D97706;
+          background: linear-gradient(135deg, #FFFDF8 0%, #FEF9EE 100%);
+          box-shadow: 0 3px 12px rgba(217, 119, 6, 0.12);
+        }
+
+        .proc-radio-card input[type="radio"] {
+          width: 18px;
+          height: 18px;
+          accent-color: #D97706;
+          margin-top: 2px;
+          flex-shrink: 0;
           cursor: pointer;
         }
 
+        .proc-radio-card strong {
+          display: block;
+          font-size: 14px;
+          font-weight: 750;
+          color: #2E1F14;
+          margin-bottom: 2px;
+        }
+
+        .proc-radio-card p {
+          margin: 0;
+          font-size: 12px;
+          color: #786D61;
+          line-height: 1.35;
+        }
+
+        .proc-textarea {
+          width: 100%;
+          min-height: 84px;
+          padding: 12px 14px;
+          border-radius: 10px;
+          border: 1.5px solid #D1C7B7;
+          background: #FFFFFF;
+          font-size: 13.5px;
+          color: #2E1F14;
+          line-height: 1.45;
+          transition: all 0.18s ease;
+          box-sizing: border-box;
+          font-family: inherit;
+          resize: vertical;
+          display: block;
+        }
+
+        .proc-textarea:focus {
+          outline: none;
+          border-color: #D97706;
+          box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.18);
+          background: #FFFDF9;
+        }
+
+        .proc-modal-actions-single {
+          margin-top: 8px;
+          width: 100%;
+        }
+
+        .proc-btn-confirm-hold {
+          width: 100%;
+          height: 48px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+          color: white;
+          border: none;
+          border-radius: 12px;
+          font-weight: 750;
+          font-size: 14px;
+          cursor: pointer;
+          transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 4px 14px rgba(217, 119, 6, 0.3);
+        }
+
+        .proc-btn-confirm-hold:hover:not(:disabled) {
+          background: linear-gradient(135deg, #B45309 0%, #92400E 100%);
+          box-shadow: 0 6px 20px rgba(217, 119, 6, 0.4);
+          transform: translateY(-1px);
+        }
+
         .proc-btn-confirm-hold:disabled {
-          opacity: 0.5;
+          opacity: 0.45;
           cursor: not-allowed;
+          box-shadow: none;
         }
 
         .proc-existing-hold-card {
           background: #FFFDF8;
-          border: 1px solid #FCD34D;
-          border-radius: 8px;
-          padding: 12px 14px;
+          border: 1.5px solid #FCD34D;
+          border-radius: 12px;
+          padding: 14px 16px;
+          box-shadow: 0 2px 8px rgba(217, 119, 6, 0.06);
         }
 
         .proc-eh-header {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 8px;
           color: #B45309;
-          font-size: 13px;
+          font-size: 13.5px;
           margin-bottom: 8px;
         }
 

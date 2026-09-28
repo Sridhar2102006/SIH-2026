@@ -1,4 +1,4 @@
-﻿export * from '../domain/indiaApicultureDomain.js';
+export * from '../domain/indiaApicultureDomain.js';
 
 /**
  * HoneyChain Beekeeper Domain Service & Field Traceability Engine
@@ -189,7 +189,15 @@ export const initialHarvestRecords = [];
 
 export const initialHandoverRecords = [];
 
-export const initialHiveHistoryEvents = [];
+// Read-only demonstration history. Runtime records are appended by the context;
+// these fixtures let a fresh workspace explain the field-notebook workflow.
+export const initialHiveHistoryEvents = [
+  { id: 'hist-demo-05', date: '25 Sep 2026', time: '08:30', hiveCode: 'H001', apiaryCode: 'AP1', traceabilityCode: 'AP1H001F3', eventType: 'HARVEST_RECORDED', title: 'Harvest recorded', summary: 'Capped frame harvest recorded.', author: 'Sarah Lindqvist', evidence: null, metadata: { quantity: '2.4 kg' } },
+  { id: 'hist-demo-04', date: '20 Sep 2026', time: '10:10', hiveCode: 'H001', apiaryCode: 'AP1', traceabilityCode: 'AP1H001F3', eventType: 'HEALTH_SCAN_COMPLETED', title: 'AI-assisted health inspection completed', summary: 'Visual finding saved for beekeeper review.', author: 'Sarah Lindqvist', evidence: '/hive-inspection-sample.jpg', metadata: { finding: 'No obvious visual concern', observationStatus: 'REVIEWED' } },
+  { id: 'hist-demo-03', date: '18 Sep 2026', time: '09:15', hiveCode: 'H001', apiaryCode: 'AP1', traceabilityCode: 'AP1H001F3', eventType: 'TELEMETRY_RECORDED', title: 'Hive conditions recorded', summary: 'Temperature and humidity reading received.', author: 'ESP32 sensor', evidence: null, metadata: { temperatureC: 29.1, humidity: 56 } },
+  { id: 'hist-demo-02', date: '15 Sep 2026', time: '11:00', hiveCode: 'H001', apiaryCode: 'AP1', traceabilityCode: 'AP1H001F3', eventType: 'INSPECTION_COMPLETED', title: 'Field inspection completed', summary: 'Routine beekeeper inspection recorded.', author: 'Sarah Lindqvist', evidence: null, metadata: {} },
+  { id: 'hist-demo-01', date: '12 Sep 2026', time: '09:00', hiveCode: 'H001', apiaryCode: 'AP1', traceabilityCode: 'AP1H001F3', eventType: 'FRAME_REGISTERED', title: 'Frame registered', summary: 'Frame placed in hive.', author: 'Sarah Lindqvist', evidence: null, metadata: {} }
+];
 
 export const BeekeeperDomainService = {
   FRAME_STATUSES,

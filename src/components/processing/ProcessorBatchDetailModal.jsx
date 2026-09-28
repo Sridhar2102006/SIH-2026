@@ -36,6 +36,7 @@ export const ProcessorBatchDetailModal = ({
   onOpenHoldModal,
   onOpenDeviationModal,
   onOpenPlanModal,
+  onResolveDeviation,
   onSkipStep,
   onSubmitToQuality
 }) => {
@@ -48,7 +49,7 @@ export const ProcessorBatchDetailModal = ({
   const [skipReasonText, setSkipReasonText] = useState('');
 
   // Validate quality readiness with new comprehensive engine
-  const readiness = ProcessingEngine.validateQualityReadiness(batch);
+  const readiness = ProcessingEngine.validateQualityReadiness(batch, { allowAutoDisposition: true });
 
   // Calculate plan progress
   const planSteps = batch.approvedPlan || [];
@@ -88,7 +89,7 @@ export const ProcessorBatchDetailModal = ({
 
   return (
     <div className="proc-modal-backdrop" onClick={onClose}>
-      <div className="proc-modal-sheet proc-modal-lg card" onClick={e => e.stopPropagation()}>
+      <div className="proc-modal-sheet proc-modal-lg" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="proc-modal-header">
           <div className="proc-modal-header-left">
@@ -104,9 +105,32 @@ export const ProcessorBatchDetailModal = ({
             </div>
             <h2 className="proc-modal-title">{batch.name}</h2>
           </div>
-          <button className="proc-close-btn" onClick={onClose} aria-label="Close modal">
-            <X size={20} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {readiness.allowed && batch.status !== BATCH_STATUSES.SUBMITTED_TO_QUALITY && (
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={() => setActiveTab('QUALITY')}
+                style={{
+                  backgroundColor: '#059669',
+                  borderColor: '#059669',
+                  fontSize: '12.5px',
+                  padding: '6px 14px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontWeight: 700,
+                  boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)'
+                }}
+              >
+                <Send size={13} />
+                <span>Quality Handoff</span>
+              </button>
+            )}
+            <button className="proc-close-btn" onClick={onClose} aria-label="Close modal">
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Operational Metrics Bar */}
@@ -158,8 +182,19 @@ export const ProcessorBatchDetailModal = ({
           <button
             className={`proc-tab-btn ${activeTab === 'QUALITY' ? 'active' : ''}`}
             onClick={() => setActiveTab('QUALITY')}
+            style={readiness.allowed && batch.status !== BATCH_STATUSES.SUBMITTED_TO_QUALITY ? {
+              backgroundColor: '#ECFDF5',
+              color: '#059669',
+              fontWeight: 750
+            } : {}}
           >
-            Quality Handoff
+            <Send size={13} style={{ marginRight: '5px', verticalAlign: 'middle' }} />
+            <span>Quality Handoff</span>
+            {readiness.allowed && batch.status !== BATCH_STATUSES.SUBMITTED_TO_QUALITY && (
+              <span style={{ marginLeft: '6px', fontSize: '10px', backgroundColor: '#059669', color: '#FFF', padding: '1px 5px', borderRadius: '8px' }}>
+                READY
+              </span>
+            )}
           </button>
         </div>
 
@@ -385,6 +420,56 @@ export const ProcessorBatchDetailModal = ({
                           <span>Review: {dev.dispositionNotes}</span>
                         </div>
                       )}
+
+                      {(!dev.resolvedAt || dev.disposition === 'HOLD') && onResolveDeviation && (
+                        <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #F1F5F9', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                          <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Supervisor Action:</span>
+                          <button
+                            type="button"
+                            className="btn btn-sm"
+                            onClick={() => onResolveDeviation({
+                              batchId: batch.id,
+                              deviationId: dev.id,
+                              disposition: 'RELEASE_TO_QUALITY',
+                              notes: 'Supervisor cleared for laboratory analytical testing and certification'
+                            })}
+                            style={{
+                              fontSize: '11.5px',
+                              padding: '5px 10px',
+                              backgroundColor: '#DCFCE7',
+                              color: '#15803D',
+                              border: '1px solid #86EFAC',
+                              borderRadius: '6px',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            ✓ Approve & Release to Lab
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-sm"
+                            onClick={() => onResolveDeviation({
+                              batchId: batch.id,
+                              deviationId: dev.id,
+                              disposition: 'ACCEPT_VARIANCE',
+                              notes: 'Variance accepted under facility SOP tolerance guidelines'
+                            })}
+                            style={{
+                              fontSize: '11.5px',
+                              padding: '5px 10px',
+                              backgroundColor: '#EFF6FF',
+                              color: '#2563EB',
+                              border: '1px solid #BFDBFE',
+                              borderRadius: '6px',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Accept Variance under SOP
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -433,7 +518,40 @@ export const ProcessorBatchDetailModal = ({
           {/* TAB 5: QUALITY HANDOFF GATEWAY */}
           {activeTab === 'QUALITY' && (
             <div className="proc-quality-tab">
-              {batch.status === BATCH_STATUSES.SUBMITTED_TO_QUALITY ? (
+              {batch.status === BATCH_STATUSES.QUALITY_PASSED || batch.labReport ? (
+                <div className="proc-already-submitted-box" style={{ borderColor: '#86EFAC', backgroundColor: '#F0FDF4' }}>
+                  <ShieldCheck size={36} color="#15803D" />
+                  <h3 style={{ color: '#15803D' }}>Certified Laboratory Certificate of Analysis (CoA) Attached</h3>
+                  <p style={{ color: '#166534' }}>
+                    Batch {batch.batchNumber} has been officially certified by {batch.labReport?.lab?.name || 'Analytical Laboratory'}.
+                    Compliance: <strong>{batch.labReport?.complianceSummary || 'CONFORMING TO SPECIFICATIONS'}</strong>.
+                  </p>
+                  <div style={{ marginTop: '12px', display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 700, padding: '4px 10px', borderRadius: '6px', backgroundColor: '#DCFCE7', color: '#166534', border: '1px solid #BBF7D0' }}>
+                      Document: {batch.labReport?.documentId || batch.coaDocumentId || 'LAB-CoA-2026'}
+                    </span>
+                    <span style={{ fontSize: '12px', color: '#475569', display: 'flex', alignItems: 'center' }}>
+                      Signed by {batch.labReport?.signatory?.name || batch.certifierName || 'Chief Chemist'}
+                    </span>
+                  </div>
+                  {/* Test parameters overview */}
+                  {batch.labReport?.tests && (
+                    <div style={{ marginTop: '16px', textAlign: 'left', width: '100%', backgroundColor: '#FFFFFF', padding: '12px', borderRadius: '8px', border: '1px solid #DCFCE7' }}>
+                      <strong style={{ fontSize: '12.5px', color: '#0F172A', display: 'block', marginBottom: '8px' }}>Verified Analytical Parameters:</strong>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '8px' }}>
+                        {batch.labReport.tests.map((t, idx) => (
+                          <div key={idx} style={{ fontSize: '12px', padding: '6px 8px', backgroundColor: '#F8FAFC', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
+                            <div style={{ color: '#64748B', fontSize: '11px' }}>{t.name || t.key}</div>
+                            <div style={{ fontWeight: 700, color: t.status === 'CONFORMING' ? '#15803D' : '#DC2626' }}>
+                              {t.result} ({t.status})
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : batch.status === BATCH_STATUSES.SUBMITTED_TO_QUALITY ? (
                 <div className="proc-already-submitted-box">
                   <ShieldCheck size={32} color="#059669" />
                   <h3>Handed Over to Certified Quality Lab</h3>
@@ -471,6 +589,15 @@ export const ProcessorBatchDetailModal = ({
                         <span>Batch Hold Status Cleared</span>
                       </div>
                     </div>
+
+                    {readiness.hasOpenDeviations && (
+                      <div style={{ marginTop: '12px', padding: '10px 14px', backgroundColor: '#FEF3C7', borderRadius: '8px', border: '1px solid #FCD34D', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#92400E' }}>
+                        <AlertTriangle size={16} color="#D97706" />
+                        <span>
+                          <strong>Deviation Notice:</strong> Batch has {readiness.unresolvedDeviations.length} logged deviation(s). Submitting will automatically log supervisor clearance <code>RELEASE_TO_QUALITY</code> for laboratory analytical confirmation.
+                        </span>
+                      </div>
+                    )}
 
                     {!readiness.allowed && (
                       <div className="proc-rc-blockers">

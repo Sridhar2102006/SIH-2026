@@ -24,6 +24,8 @@ const CAPABILITY_EXTENSIONS = [
   { id: 'CERTIFICATE_GENERATION', designationFamily: 'LAB', name: 'Certificate Generation', type: 'Advanced', purpose: 'Generate certificates from approved laboratory reports', category: 'QUALITY' },
   { id: 'PACKAGE_QR_VALIDATE', designationFamily: 'DISTRIBUTOR', name: 'Package QR Validation', type: 'Optional', purpose: 'Validate package QR references before dispatch', category: 'FULFILLMENT' },
   { id: 'SHIPMENT_RELEASE', designationFamily: 'DISTRIBUTOR', name: 'Shipment Release', type: 'Core', purpose: 'Release validated package consignments for transport dispatch', category: 'FULFILLMENT' },
+  { id: 'SENSOR_MONITORING', designationFamily: 'BEEKEEPER', name: 'Sensor Monitoring', type: 'Optional', purpose: 'Monitor IoT hive telemetry, temperature, humidity, and colony sensors', category: 'FIELD' },
+  { id: 'SHIPMENT_DISPATCH', designationFamily: 'DISTRIBUTOR', name: 'Shipment Dispatch', type: 'Core', purpose: 'Dispatch validated honey shipments and manage carrier transit', category: 'FULFILLMENT' },
   { id: 'USER_MANAGE', designationFamily: 'SYSTEM', name: 'User Administration', type: 'System Only', purpose: 'System-only user administration capability', category: 'SYSTEM', riskLevel: 'CRITICAL' },
   { id: 'KEYS_REVOKE', designationFamily: 'SYSTEM', name: 'Key Revocation', type: 'System Only', purpose: 'System-only key revocation capability', category: 'SYSTEM', riskLevel: 'CRITICAL' },
   { id: 'LEDGER_AUDIT', designationFamily: 'SYSTEM', name: 'Ledger Audit', type: 'Privileged', purpose: 'Privileged ledger audit action', category: 'SYSTEM', riskLevel: 'CRITICAL' }

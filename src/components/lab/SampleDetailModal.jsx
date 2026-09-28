@@ -16,7 +16,8 @@ import {
   Calendar,
   Lock,
   Download,
-  AlertCircle
+  AlertCircle,
+  Send
 } from 'lucide-react';
 import {
   SAMPLE_STATUS_LABELS,
@@ -26,7 +27,7 @@ import {
   resolveSampleTraceability
 } from '../../services/labDomainService';
 
-export const SampleDetailModal = ({ sampleId, isOpen, onClose, onOpenReport, onAssignTest }) => {
+export const SampleDetailModal = ({ sampleId: propSampleId, sample: propSample, isOpen, onClose, onOpenReport, onAssignTest }) => {
   const {
     labSamples,
     labTests,
@@ -37,8 +38,12 @@ export const SampleDetailModal = ({ sampleId, isOpen, onClose, onOpenReport, onA
     apiaries,
     session,
     can,
+    acceptSampleIntake,
+    rejectSampleIntake,
+    putSampleOnHold,
     submitQualityRecommendation,
     executeQualityDecision,
+    sendLabReportToProcessorAndDispatch,
     showToast
   } = useAppState();
 
@@ -48,9 +53,10 @@ export const SampleDetailModal = ({ sampleId, isOpen, onClose, onOpenReport, onA
   const [decisionKey, setDecisionKey] = useState('RELEASED_FOR_BOTTLING');
   const [decisionNotes, setDecisionNotes] = useState('');
 
+  const sampleId = propSampleId || propSample?.id;
   if (!isOpen || !sampleId) return null;
 
-  const sample = labSamples.find(s => s.id === sampleId);
+  const sample = propSample || labSamples.find(s => s.id === sampleId);
   if (!sample) return null;
 
   const sampleTests = labTests.filter(t => t.sampleId === sample.id);
@@ -200,6 +206,49 @@ export const SampleDetailModal = ({ sampleId, isOpen, onClose, onOpenReport, onA
             </button>
           </div>
         </div>
+
+        {/* Awaiting Intake Verification Alert Bar */}
+        {sample.intakeStatus === 'AWAITING_INTAKE' && (
+          <div
+            style={{
+              padding: '12px 20px',
+              backgroundColor: '#FEF3C7',
+              borderBottom: '1px solid #FCD34D',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '12px'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Clock size={20} color="#D97706" style={{ flexShrink: 0 }} />
+              <div>
+                <strong style={{ fontSize: '13px', color: '#92400E' }}>Sample Awaiting Lab Intake & Verification</strong>
+                <p style={{ margin: 0, fontSize: '12px', color: '#78350F' }}>
+                  Dispatched from processing bay. Verify tamper seal and log into active laboratory custody.
+                </p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => {
+                  acceptSampleIntake({
+                    sampleId: sample.id,
+                    verifiedStorageLocation: 'Specimen Cabinet A · Shelf 01',
+                    operator: session?.operator || 'Dr. Aris Thorne',
+                    remarks: 'Tamper tape and sealed jar verified at laboratory intake'
+                  });
+                }}
+                style={{ fontSize: '12px', padding: '6px 14px', backgroundColor: '#059669', borderColor: '#059669' }}
+              >
+                <CheckCircle2 size={14} style={{ marginRight: '5px' }} />
+                <span>Accept into Custody</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Navigation Tabs */}
         <div
@@ -698,6 +747,37 @@ export const SampleDetailModal = ({ sampleId, isOpen, onClose, onOpenReport, onA
                     </p>
                     <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '6px' }}>
                       Recommended by {sample.recommenderName} · {new Date(sample.recommendedAt).toLocaleDateString()}
+                    </div>
+                    {sample.coaDocumentId && (
+                      <div style={{ marginTop: '8px', display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11.5px', color: '#059669', backgroundColor: '#ECFDF5', padding: '3px 8px', borderRadius: '5px', border: '1px solid #A7F3D0' }}>
+                        <ShieldCheck size={13} />
+                        <span>CoA {sample.coaDocumentId} Dispatched to Processor & Dispatch Unit</span>
+                      </div>
+                    )}
+                    <div style={{ marginTop: '10px' }}>
+                      <button
+                        type="button"
+                        className="btn btn-primary btn-sm"
+                        onClick={() => {
+                          if (sendLabReportToProcessorAndDispatch) {
+                            sendLabReportToProcessorAndDispatch({
+                              sampleId: sample.id,
+                              notes: `Direct dispatch from Sample Modal. Status: ${sample.qualityRecommendation}.`
+                            });
+                          }
+                        }}
+                        style={{
+                          backgroundColor: '#059669',
+                          borderColor: '#059669',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          fontSize: '12px'
+                        }}
+                      >
+                        <Send size={13} />
+                        <span>Send Lab Report to Processor & Dispatch</span>
+                      </button>
                     </div>
                   </div>
                 ) : (

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAppState } from '../../context/AppStateContext';
 import {
-  Inbox,
+  MessageSquare,
   ShieldCheck,
   CheckCircle2,
   XCircle,
@@ -24,6 +24,8 @@ export const ProcessorIntakeView = ({
 }) => {
   const {
     handoverRecords = [],
+    harvestRecords = [],
+    frames = [],
     acceptHarvestIntake,
     rejectHarvestIntake
   } = useAppState();
@@ -31,20 +33,101 @@ export const ProcessorIntakeView = ({
   const [statusFilter, setStatusFilter] = useState('AWAITING'); // 'AWAITING' | 'ACCEPTED' | 'ASSIGNED' | 'REJECTED' | 'ALL'
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredHandovers = handoverRecords.filter(h => {
+  const isAwaitingStatus = (status) => {
+    return (
+      status === 'SUBMITTED_TO_PROCESSOR' ||
+      status === INTAKE_STATUSES.SUBMITTED_TO_PROCESSOR ||
+      status === 'SUBMITTED_BY_BEEKEEPER' ||
+      status === INTAKE_STATUSES.SUBMITTED_BY_BEEKEEPER ||
+      status === 'AWAITING_INTAKE' ||
+      status === INTAKE_STATUSES.AWAITING_INTAKE ||
+      status === 'HARVESTED' ||
+      !status
+    );
+  };
+
+  const effectiveHandovers = React.useMemo(() => {
+    const map = new Map();
+
+    // 1. Official Handover Records take top priority
+    (handoverRecords || []).forEach(hnd => {
+      const code = String(hnd.traceabilityCode || '').toUpperCase().trim();
+      if (!code) return;
+      map.set(code, { ...hnd });
+    });
+
+    // 2. Harvest records that have submittedToProcessor flag
+    (harvestRecords || []).filter(h => h.submittedToProcessor).forEach((hrv, idx) => {
+      const code = String(hrv.traceabilityCode || '').toUpperCase().trim();
+      if (!code || map.has(code)) return;
+      map.set(code, {
+        id: hrv.handoverId || hrv.id || `handover-hrv-${idx}`,
+        handoverCode: `HND-2409-${String(map.size + 1).padStart(2, '0')}`,
+        traceabilityCode: hrv.traceabilityCode,
+        harvestRecordId: hrv.id,
+        frameId: hrv.frameId,
+        apiaryCode: hrv.apiaryCode || 'AP1',
+        hiveCode: hrv.hiveCode || 'H001',
+        frameNumber: hrv.frameNumber || 'F1',
+        quantityKg: hrv.quantityKg || 2.4,
+        honeyType: hrv.honeyType || 'Wildflower',
+        submissionTimestamp: hrv.harvestDate ? `${hrv.harvestDate} · ${hrv.harvestTime || '12:00'}` : 'Recently',
+        submittingBeekeeper: hrv.submittingBeekeeper || 'Sarah Lindqvist',
+        receivingFacility: 'On-site Honey Processing House #2',
+        status: INTAKE_STATUSES.SUBMITTED_TO_PROCESSOR,
+        statusLabel: 'Submitted for Processing',
+        remarks: hrv.remarks || 'Delivered from apiary harvest.',
+        evidence: {
+          containerSeal: 'SEAL-AP1-MB-0926',
+          photo: hrv.evidencePhoto || '/hive-inspection-sample.jpg'
+        }
+      });
+    });
+
+    // 3. Frames with status SUBMITTED_TO_PROCESSOR
+    (frames || []).filter(f => f.status === 'SUBMITTED_TO_PROCESSOR').forEach((frm, idx) => {
+      const code = String(frm.traceabilityCode || '').toUpperCase().trim();
+      if (!code || map.has(code)) return;
+      map.set(code, {
+        id: frm.handoverId || frm.id || `handover-frm-${idx}`,
+        handoverCode: `HND-2409-${String(map.size + 1).padStart(2, '0')}`,
+        traceabilityCode: frm.traceabilityCode,
+        frameId: frm.id,
+        apiaryCode: frm.apiaryCode || 'AP1',
+        hiveCode: frm.hiveCode || 'H001',
+        frameNumber: frm.frameNumber || 'F1',
+        quantityKg: frm.harvestQuantityKg || 2.4,
+        honeyType: frm.honeyType || 'Wildflower',
+        submissionTimestamp: 'Recently',
+        submittingBeekeeper: 'Sarah Lindqvist',
+        receivingFacility: 'On-site Honey Processing House #2',
+        status: INTAKE_STATUSES.SUBMITTED_TO_PROCESSOR,
+        statusLabel: 'Submitted for Processing',
+        remarks: 'Delivered from hive harvest.',
+        evidence: {
+          containerSeal: 'SEAL-AP1-MB-0926',
+          photo: '/hive-inspection-sample.jpg'
+        }
+      });
+    });
+
+    return Array.from(map.values());
+  }, [handoverRecords, harvestRecords, frames]);
+
+  const filteredHandovers = effectiveHandovers.filter(h => {
     // Status filter
     if (statusFilter === 'AWAITING') {
-      if (h.status !== INTAKE_STATUSES.SUBMITTED_TO_PROCESSOR && h.status !== INTAKE_STATUSES.AWAITING_INTAKE) {
+      if (!isAwaitingStatus(h.status)) {
         return false;
       }
     } else if (statusFilter === 'ACCEPTED') {
-      if (h.status !== INTAKE_STATUSES.RECEIVED) return false;
+      if (h.status !== INTAKE_STATUSES.RECEIVED && h.status !== 'RECEIVED') return false;
     } else if (statusFilter === 'HOLD') {
-      if (h.status !== INTAKE_STATUSES.ON_HOLD) return false;
+      if (h.status !== INTAKE_STATUSES.ON_HOLD && h.status !== 'ON_HOLD') return false;
     } else if (statusFilter === 'ASSIGNED') {
-      if (h.status !== INTAKE_STATUSES.ASSIGNED_TO_BATCH) return false;
+      if (h.status !== INTAKE_STATUSES.ASSIGNED_TO_BATCH && h.status !== 'ASSIGNED_TO_BATCH') return false;
     } else if (statusFilter === 'REJECTED') {
-      if (h.status !== INTAKE_STATUSES.REJECTED) return false;
+      if (h.status !== INTAKE_STATUSES.REJECTED && h.status !== 'REJECTED') return false;
     }
 
     // Search query
@@ -62,9 +145,9 @@ export const ProcessorIntakeView = ({
     return true;
   });
 
-  const awaitingCount = handoverRecords.filter(h => h.status === INTAKE_STATUSES.SUBMITTED_TO_PROCESSOR || h.status === INTAKE_STATUSES.AWAITING_INTAKE).length;
-  const acceptedUnassignedCount = handoverRecords.filter(h => h.status === INTAKE_STATUSES.RECEIVED).length;
-  const heldCount = handoverRecords.filter(h => h.status === INTAKE_STATUSES.ON_HOLD).length;
+  const awaitingCount = effectiveHandovers.filter(h => isAwaitingStatus(h.status)).length;
+  const acceptedUnassignedCount = effectiveHandovers.filter(h => h.status === 'RECEIVED' || h.status === INTAKE_STATUSES.RECEIVED).length;
+  const heldCount = effectiveHandovers.filter(h => h.status === 'ON_HOLD' || h.status === INTAKE_STATUSES.ON_HOLD).length;
 
   return (
     <div className="proc-intake-container">
@@ -150,7 +233,7 @@ export const ProcessorIntakeView = ({
             className={`proc-f-pill ${statusFilter === 'ALL' ? 'active' : ''}`}
             onClick={() => setStatusFilter('ALL')}
           >
-            All ({handoverRecords.length})
+            All ({effectiveHandovers.length})
           </button>
         </div>
       </div>
@@ -159,7 +242,7 @@ export const ProcessorIntakeView = ({
       <div className="proc-intake-list">
         {filteredHandovers.length === 0 ? (
           <div className="proc-empty-card card">
-            <Inbox size={32} color="var(--color-warm-gray, #736961)" />
+            <MessageSquare size={36} color="#059669" />
             <h4 className="proc-empty-title">No Harvest Records Found</h4>
             <p className="proc-empty-text">
               {statusFilter === 'AWAITING'

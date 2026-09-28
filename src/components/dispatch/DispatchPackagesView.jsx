@@ -30,6 +30,7 @@ import {
 import { DispatchQrScannerModal } from './DispatchQrScannerModal';
 import { PackageTraceabilityModal } from './PackageTraceabilityModal';
 import { CreateShipmentModal } from './CreateShipmentModal';
+import { LabReportModal } from '../lab/LabReportModal';
 import {
   PACKAGE_STATUSES,
   PACKAGE_STATUS_LABELS
@@ -44,7 +45,7 @@ export const DispatchPackagesView = () => {
     showToast
   } = useAppState();
 
-  const [filterStatus, setFilterStatus] = useState('ALL'); // 'ALL' | 'READY_FOR_DISPATCH' | 'ALLOCATED' | 'DISPATCHED' | 'DELIVERED'
+  const [filterStatus, setFilterStatus] = useState('ALL'); // 'ALL' | 'COA_APPROVED' | 'READY_FOR_DISPATCH' | 'ALLOCATED' | 'DISPATCHED' | 'DELIVERED'
   const [searchQuery, setSearchQuery] = useState('');
 
   // Modals
@@ -53,6 +54,7 @@ export const DispatchPackagesView = () => {
   const [selectedPackageForTrace, setSelectedPackageForTrace] = useState(null);
   const [packageForShipment, setPackageForShipment] = useState(null);
   const [isCreateShipmentOpen, setIsCreateShipmentOpen] = useState(false);
+  const [selectedPackageForReport, setSelectedPackageForReport] = useState(null);
 
   // Override Modal
   const [overridePackage, setOverridePackage] = useState(null);
@@ -64,6 +66,7 @@ export const DispatchPackagesView = () => {
 
   // Filter & Search Logic
   const filteredPackages = dispatchPackages.filter(p => {
+    if (filterStatus === 'COA_APPROVED' && !p.coaDocumentId && !p.labReport) return false;
     if (filterStatus === 'READY_FOR_DISPATCH' && p.status !== PACKAGE_STATUSES.READY_FOR_DISPATCH) return false;
     if (filterStatus === 'ALLOCATED' && p.status !== PACKAGE_STATUSES.ALLOCATED) return false;
     if (filterStatus === 'DISPATCHED' && p.status !== PACKAGE_STATUSES.DISPATCHED && p.status !== PACKAGE_STATUSES.IN_TRANSIT) return false;
@@ -188,6 +191,7 @@ export const DispatchPackagesView = () => {
         <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
           {[
             { id: 'ALL', label: `All (${dispatchPackages.length})` },
+            { id: 'COA_APPROVED', label: `🛡️ CoA Approved (${dispatchPackages.filter(p => p.coaDocumentId || p.labReport).length})` },
             { id: 'READY_FOR_DISPATCH', label: `Ready (${dispatchPackages.filter(p => p.status === PACKAGE_STATUSES.READY_FOR_DISPATCH).length})` },
             { id: 'ALLOCATED', label: `Allocated (${dispatchPackages.filter(p => p.status === PACKAGE_STATUSES.ALLOCATED).length})` },
             { id: 'DISPATCHED', label: `Dispatched (${dispatchPackages.filter(p => p.status === PACKAGE_STATUSES.DISPATCHED || p.status === PACKAGE_STATUSES.IN_TRANSIT).length})` },
@@ -346,6 +350,33 @@ export const DispatchPackagesView = () => {
                     <strong style={{ color: pkg.qualityStatus === 'APPROVED' ? '#2E7D32' : '#B91C1C' }}>
                       {pkg.qualityStatus || 'PENDING'}
                     </strong>
+                    {pkg.coaDocumentId && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedPackageForReport(pkg);
+                        }}
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          color: '#15803D',
+                          backgroundColor: '#DCFCE7',
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          border: '1px solid #BBF7D0',
+                          marginLeft: '6px',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px'
+                        }}
+                        title="Click to view official Laboratory Certificate of Analysis"
+                      >
+                        <ShieldCheck size={12} />
+                        <span>CoA: {pkg.coaDocumentId}</span>
+                      </button>
+                    )}
                   </div>
                   <div>
                     <span style={{ color: '#64748B' }}>Tamper Seal:</span>{' '}
@@ -359,7 +390,18 @@ export const DispatchPackagesView = () => {
 
                 {/* Actions Row */}
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #F1F5F9', paddingTop: '10px' }}>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {(pkg.labReport || pkg.coaDocumentId) && (
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => setSelectedPackageForReport(pkg)}
+                        style={{ fontSize: '12px', padding: '5px 10px', borderColor: '#86EFAC', color: '#047857', backgroundColor: '#F0FDF4', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <ShieldCheck size={13} />
+                        <span>View Lab CoA</span>
+                      </button>
+                    )}
                     <button
                       className="btn btn-secondary btn-sm"
                       onClick={() => setSelectedPackageForTrace(pkg)}
@@ -510,6 +552,12 @@ export const DispatchPackagesView = () => {
           </div>
         </div>
       )}
+
+      <LabReportModal
+        isOpen={Boolean(selectedPackageForReport)}
+        onClose={() => setSelectedPackageForReport(null)}
+        report={selectedPackageForReport?.labReport}
+      />
     </div>
   );
 };

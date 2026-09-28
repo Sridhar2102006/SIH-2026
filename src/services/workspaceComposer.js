@@ -70,7 +70,7 @@ export function composeWorkspace({
   const signatureHash = CapabilitySignatureService.getSignatureHash(effectiveCapabilities);
 
   // 4. Primary Designation Resolution
-  const primaryDesignation = designations[0] || (
+  const primaryDesignation = user.activeDesignation || designations[0] || (
     effectiveCapabilities.includes('LAB_WORKSPACE') ? 'LAB_SPECIALIST' :
     effectiveCapabilities.includes('DISPATCH_PLANNING') ? 'DISTRIBUTOR' :
     effectiveCapabilities.includes('PROCESSING_MANAGEMENT') ? 'PROCESSOR' :
@@ -109,6 +109,7 @@ export function composeWorkspace({
 
   // 10. Construct Final Cohesive Workspace Envelope (§ 35)
   return {
+    primaryDesignation,
     workspace: {
       id: workspaceId,
       version: WORKSPACE_VERSION,

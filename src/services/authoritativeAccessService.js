@@ -92,9 +92,18 @@ export const resolveAuthoritativeAccess = (payload = {}) => {
   // 3. Designation Sanitization:
   // User cannot self-confirm a designation for which they are NOT_ELIGIBLE,
   // unless explicitly authorized as system administrator.
-  const eligibleIdSet = new Set(eligibilityResult.eligibleDesignations.map(e => e.designationId));
-  const sanitizedConfirmedDesignations = designations
-    .map(d => typeof d === 'string' ? d.toUpperCase() : '')
+  const DESIGNATION_ALIASES = {
+    'LAB': 'LAB_SPECIALIST',
+    'DISPATCH': 'DISTRIBUTOR'
+  };
+  const normalizedDesignations = (designations || []).map(d => {
+    if (typeof d !== 'string') return '';
+    const upper = d.toUpperCase().trim();
+    return DESIGNATION_ALIASES[upper] || upper;
+  }).filter(Boolean);
+
+  const eligibleIdSet = new Set((eligibilityResult.eligibleDesignations || []).map(e => e.designationId));
+  const sanitizedConfirmedDesignations = normalizedDesignations
     .filter(id => DESIGNATION_MAP.has(id) && (eligibleIdSet.has(id) || isSystemAdmin));
 
   // SECURITY: Suggestions are NOT authorization.

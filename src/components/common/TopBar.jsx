@@ -1,52 +1,83 @@
 import React from 'react';
 import { useAppState } from '../../context/AppStateContext';
-import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { Wifi, WifiOff, RefreshCw, Trash2 } from 'lucide-react';
 
 import { RouteRegistry } from '../../services/routeRegistry';
 
 export const TopBar = () => {
   const {
+    session,
     apiary,
+    apiaries = [],
     activeTab,
     isOnline,
     isSyncing,
     pendingSyncCount,
     toggleOnlineMode,
     triggerSync,
-    navigateTo
+    truncateAllRecords,
   } = useAppState();
 
   const currentRoute = RouteRegistry.getRoute(activeTab);
   const routeTitle = currentRoute?.title || 'HoneyChain Operations';
+  const activeApiary = apiary || (apiaries && apiaries.length > 0 ? apiaries[0] : null);
+
+  const isBeekeeper = !session?.activeRole || session?.activeRole === 'BEEKEEPER';
+
+  const handleTruncateClick = () => {
+    const ok = window.confirm(
+      'TRUNCATE ALL APP RECORDS?\n\nThis will wipe all existing apiaries, hives, harvests, handovers, batches, lab tests, packages, and QRs from the local database.\n\nYou can then feed fresh data manually and test complete end-to-end honey traceability.'
+    );
+    if (ok && truncateAllRecords) {
+      truncateAllRecords();
+    }
+  };
+
+  // Compute workspace-aware title
+  const activeRoleStr = (
+    session?.activeRole ||
+    session?.activeDesignation ||
+    session?.designations?.[0] ||
+    ''
+  ).toUpperCase();
+
+  const workspaceDisplayName = (() => {
+    if (activeRoleStr === 'PROCESSOR') return 'Processing Facility';
+    if (activeRoleStr === 'LAB_SPECIALIST' || activeRoleStr === 'LAB') return 'Analytical Laboratory';
+    if (activeRoleStr === 'DISTRIBUTOR' || activeRoleStr === 'DISPATCH') return 'Logistics Hub';
+    return null; // Beekeeper → use apiary name
+  })();
+
+  const topbarTitle = workspaceDisplayName || activeApiary?.name || 'HoneyChain';
+  // Beekeeper shows apiary name with no subtitle; others show route context when not on home
+  const topbarSubtitle = (!workspaceDisplayName)
+    ? null
+    : (activeTab !== 'home' ? routeTitle : null);
 
   return (
     <header className="topbar">
       <div className="topbar-context">
-        <span className="micro-text topbar-apiary-name">{apiary?.name ?? 'No Apiary Set Up'}</span>
-        <h1 className="topbar-title">{routeTitle}</h1>
+        {topbarSubtitle && (
+          <span className="topbar-apiary-name">{topbarSubtitle}</span>
+        )}
+        <h1 className="topbar-title">{topbarTitle}</h1>
       </div>
 
       <div className="topbar-actions">
         <button
-          type="button"
-          className="topbar-processor-btn"
-          onClick={() => {
-            try {
-              sessionStorage.setItem('open_processor_onboarding', 'true');
-            } catch (_) {}
-            navigateTo('onboarding');
-          }}
-          title="Open Common-Man Processor Onboarding"
-          aria-label="Open Common-Man Processor Onboarding"
+          className="topbar-truncate-btn"
+          onClick={handleTruncateClick}
+          title="Truncate all records to test manual data feeding"
+          aria-label="Truncate all records"
         >
-          <span style={{ fontSize: '13px' }}>🍯</span>
-          <span className="topbar-processor-label">Processor Mode</span>
+          <Trash2 size={13} strokeWidth={2} />
+          <span>Truncate</span>
         </button>
 
         <button
           className={`topbar-network-btn ${!isOnline ? 'offline' : isSyncing ? 'syncing' : 'online'}`}
           onClick={!isOnline ? toggleOnlineMode : pendingSyncCount > 0 ? triggerSync : toggleOnlineMode}
-          title={isOnline ? "Tap to simulate field offline mode" : "Tap to reconnect"}
+          title={isOnline ? 'Tap to simulate field offline mode' : 'Tap to reconnect'}
           aria-label="Network status"
         >
           {isSyncing ? (
@@ -57,12 +88,12 @@ export const TopBar = () => {
           ) : !isOnline ? (
             <>
               <WifiOff size={13} strokeWidth={2} />
-              <span>Offline {pendingSyncCount > 0 && `(${pendingSyncCount})`}</span>
+              <span>Offline{pendingSyncCount > 0 ? ` (${pendingSyncCount})` : ''}</span>
             </>
           ) : (
             <>
               <Wifi size={13} strokeWidth={2} />
-              <span>{pendingSyncCount > 0 ? `${pendingSyncCount} pending` : 'Connected'}</span>
+              <span>{pendingSyncCount > 0 ? `${pendingSyncCount} pending` : 'Online'}</span>
             </>
           )}
         </button>
@@ -70,7 +101,7 @@ export const TopBar = () => {
 
       <style>{`
         .topbar {
-          padding: 16px var(--mobile-pad) 12px;
+          padding: 13px var(--mobile-pad) 11px;
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -84,71 +115,83 @@ export const TopBar = () => {
         .topbar-context {
           display: flex;
           flex-direction: column;
-          gap: 2px;
+          gap: 1px;
+          flex: 1;
+          min-width: 0;
         }
 
         .topbar-apiary-name {
+          font-size: 10.5px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
           color: var(--theme-text-secondary, var(--color-warm-gray));
-          letter-spacing: 0.05em;
+          display: block;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .topbar-title {
-          font-size: 19px;
-          font-weight: 700;
+          font-size: 17px;
+          font-weight: 800;
           color: var(--theme-text-primary, var(--color-deep-cocoa));
-          line-height: 1.25;
-          letter-spacing: -0.01em;
+          line-height: 1.2;
+          letter-spacing: -0.02em;
+          margin: 0;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .topbar-actions {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 6px;
+          flex-shrink: 0;
+          margin-left: 12px;
         }
 
-        .topbar-processor-btn {
+        .topbar-truncate-btn {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          padding: 6px 12px;
-          border-radius: var(--radius-badge, 16px);
-          font-size: 12px;
+          gap: 4px;
+          padding: 5px 9px;
+          border-radius: var(--radius-badge, 6px);
+          font-size: 11px;
           font-weight: 600;
-          border: 1px solid rgba(217, 119, 6, 0.4);
-          background-color: #FEF3C7;
-          color: #92400E;
+          font-family: inherit;
+          border: 1px solid rgba(220, 53, 69, 0.3);
+          background-color: rgba(220, 53, 69, 0.07);
+          color: #c62828;
           cursor: pointer;
           transition: all 0.15s ease;
           user-select: none;
+          white-space: nowrap;
         }
 
-        .topbar-processor-btn:hover {
-          background-color: #FDE68A;
-          border-color: #D97706;
+        .topbar-truncate-btn:hover {
+          background-color: rgba(220, 53, 69, 0.15);
+          border-color: rgba(220, 53, 69, 0.5);
           transform: translateY(-1px);
-          box-shadow: 0 2px 6px rgba(217, 119, 6, 0.15);
-        }
-
-        @media (max-width: 520px) {
-          .topbar-processor-label {
-            display: none;
-          }
         }
 
         .topbar-network-btn {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          padding: 6px 11px;
-          border-radius: var(--radius-badge);
-          font-size: 12px;
+          gap: 5px;
+          padding: 5px 10px;
+          border-radius: var(--radius-badge, 6px);
+          font-size: 11.5px;
           font-weight: 500;
+          font-family: inherit;
           border: 1px solid var(--theme-border, var(--color-divider));
           background-color: var(--theme-surface, var(--color-soft-ivory));
           color: var(--theme-text-secondary, var(--color-warm-gray));
           cursor: pointer;
           transition: background-color 0.15s ease;
           user-select: none;
+          white-space: nowrap;
         }
 
         .topbar-network-btn:hover {
@@ -156,14 +199,14 @@ export const TopBar = () => {
         }
 
         .topbar-network-btn.online {
-          color: var(--color-healthy);
-          border-color: rgba(79, 122, 82, 0.25);
+          color: #3a7040;
+          border-color: rgba(79, 122, 82, 0.3);
           background-color: rgba(79, 122, 82, 0.08);
         }
 
         .topbar-network-btn.offline {
-          color: var(--color-attention);
-          border-color: rgba(217, 130, 43, 0.3);
+          color: #b45309;
+          border-color: rgba(217, 130, 43, 0.35);
           background-color: rgba(217, 130, 43, 0.1);
         }
 

@@ -14,10 +14,13 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test:all": "node tests/runAllTests.cjs",
-    "test:onboarding": "node tests/masterOnboardingAdaptiveEngine.test.js"
+    "test:onboarding": "node tests/masterOnboardingAdaptiveEngine.test.js",
+    "test:db": "node tests/realDatabaseReadiness.test.js",
+    "demo:reset": "node scripts/juryDemoReset.cjs"
   },
   "dependencies": {
     "lucide-react": "^1.47.0",
+    "qrcode": "^1.5.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },

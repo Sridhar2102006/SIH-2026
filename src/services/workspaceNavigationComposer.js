@@ -63,7 +63,7 @@ export const NAVIGATION_ITEM_CATALOG = {
   INTAKE: {
     id: 'intake',
     label: 'Intake',
-    iconName: 'Droplet',
+    iconName: 'MessageSquare',
     priority: 89,
     requiredCapabilities: ['PROCESSING_MANAGEMENT', 'BATCH_INTAKE']
   },
@@ -202,10 +202,15 @@ export function composeNavigation(capabilities = [], primaryDesignation = 'BEEKE
   const hasDispatch = capSet.has('DISTRIBUTION_WORKSPACE') || capSet.has('DISPATCH_PLANNING') || capSet.has('SHIPMENT_CREATE') || capSet.has('PACKAGE_QR_VALIDATE');
   const hasRoutes = capSet.has('ROUTE_PLANNING') || capSet.has('MULTI_STOP_DISPATCH');
   const hasDeliveries = capSet.has('DELIVERY_TRACKING') || capSet.has('DELIVERY_CONFIRMATION') || capSet.has('PROOF_OF_DELIVERY');
-  const isPureDistributor = hasDispatch && !hasHives && !hasLab && !hasProcessing;
 
   // Multi-domain vs single domain synthesis
-  if (hasLab) {
+  // Route to navigation set based on primary designation first, validated against capabilities:
+  const isLabRole = (desig === 'LAB_SPECIALIST' || desig === 'LAB') && hasLab;
+  const isProcessorRole = (desig === 'PROCESSOR') && hasProcessing;
+  const isDispatchRole = (desig === 'DISTRIBUTOR' || desig === 'DISPATCH') && hasDispatch;
+  const isBeekeeperRole = (desig === 'BEEKEEPER') && (hasHives || hasHoney);
+
+  if (isLabRole) {
     candidateItems.push({
       ...NAVIGATION_ITEM_CATALOG.SAMPLES,
       effectivePriority: 90,
@@ -221,86 +226,71 @@ export function composeNavigation(capabilities = [], primaryDesignation = 'BEEKE
         badge: operationalData.pendingReviewCount > 0 ? operationalData.pendingReviewCount : null
       });
     }
-  } else if (hasDispatch) {
-    if (isPureDistributor) {
+  } else if (isProcessorRole) {
+    candidateItems.push({
+      ...NAVIGATION_ITEM_CATALOG.INTAKE,
+      effectivePriority: 92,
+      badge: operationalData.pendingIntakeCount > 0 ? operationalData.pendingIntakeCount : null
+    });
+    candidateItems.push({
+      ...NAVIGATION_ITEM_CATALOG.PROCESSING,
+      effectivePriority: 88,
+      badge: operationalData.activeBatchesCount > 0 ? operationalData.activeBatchesCount : null
+    });
+    candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.BATCHES, effectivePriority: 86 });
+    candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.HISTORY, effectivePriority: 82 });
+  } else if (isDispatchRole) {
+    candidateItems.push({
+      ...NAVIGATION_ITEM_CATALOG.DISPATCH,
+      label: 'Ready to Ship',
+      effectivePriority: 92,
+      badge: operationalData.pendingPackagesCount > 0 ? operationalData.pendingPackagesCount : null
+    });
+    candidateItems.push({
+      ...NAVIGATION_ITEM_CATALOG.SHIPMENTS,
+      label: 'Shipments',
+      effectivePriority: 88,
+      badge: operationalData.pendingShipmentsCount > 0 ? operationalData.pendingShipmentsCount : null
+    });
+    if (hasDeliveries) {
+      const urgentBoost = (operationalData.deliveryExceptionsCount > 0 || operationalData.activeDeliveriesCount > 0) ? 95 : 84;
       candidateItems.push({
-        ...NAVIGATION_ITEM_CATALOG.DISPATCH,
-        label: 'Ready to Ship',
-        effectivePriority: 92,
-        badge: operationalData.pendingPackagesCount > 0 ? operationalData.pendingPackagesCount : null
+        ...NAVIGATION_ITEM_CATALOG.DELIVERIES,
+        label: 'Tracking',
+        effectivePriority: urgentBoost,
+        badge: operationalData.deliveryExceptionsCount > 0 ? '!' : null
       });
-      candidateItems.push({
-        ...NAVIGATION_ITEM_CATALOG.SHIPMENTS,
-        label: 'Shipments',
-        effectivePriority: 88,
-        badge: operationalData.pendingShipmentsCount > 0 ? operationalData.pendingShipmentsCount : null
-      });
-      if (hasDeliveries) {
-        const urgentBoost = (operationalData.deliveryExceptionsCount > 0 || operationalData.activeDeliveriesCount > 0) ? 95 : 84;
-        candidateItems.push({
-          ...NAVIGATION_ITEM_CATALOG.DELIVERIES,
-          label: 'Tracking',
-          effectivePriority: urgentBoost,
-          badge: operationalData.deliveryExceptionsCount > 0 ? '!' : null
-        });
-      }
-    } else {
-      candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.DISPATCH, effectivePriority: 90 });
-      if (hasRoutes) {
-        candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.ROUTES, effectivePriority: 85 });
-      } else {
-        candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.ORDERS, effectivePriority: 82 });
-      }
-      if (hasDeliveries) {
-        // Urgency boost if active deliveries or exceptions exist
-        const urgentBoost = (operationalData.deliveryExceptionsCount > 0 || operationalData.activeDeliveriesCount > 0) ? 95 : 80;
-        candidateItems.push({
-          ...NAVIGATION_ITEM_CATALOG.DELIVERIES,
-          effectivePriority: urgentBoost,
-          badge: operationalData.deliveryExceptionsCount > 0 ? '!' : null
-        });
-      }
+    } else if (hasRoutes) {
+      candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.ROUTES, effectivePriority: 85 });
+    }
+  } else if (isBeekeeperRole) {
+    if (hasHives) candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.HIVES, effectivePriority: 90 });
+    if (hasInspections) candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.INSPECTIONS, effectivePriority: 85 });
+    if (hasHoney) {
+      candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.HARVEST, effectivePriority: 80 });
+      candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.JOURNEY, effectivePriority: 75 });
     }
   } else {
-    const isPureProcessor = hasProcessing && !hasHives && !hasLab && !hasDispatch;
-
-    if (isPureProcessor) {
-      candidateItems.push({
-        ...NAVIGATION_ITEM_CATALOG.INTAKE,
-        effectivePriority: 92,
-        badge: operationalData.pendingIntakeCount > 0 ? operationalData.pendingIntakeCount : null
-      });
-      candidateItems.push({
-        ...NAVIGATION_ITEM_CATALOG.PROCESSING,
-        effectivePriority: 88,
-        badge: operationalData.activeBatchesCount > 0 ? operationalData.activeBatchesCount : null
-      });
+    // Capability-based fallback
+    if (hasLab) {
+      candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.SAMPLES, effectivePriority: 90 });
+      if (hasTests) candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.TESTS, effectivePriority: 85 });
+      if (hasReview) candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.REVIEW, effectivePriority: 80 });
+    } else if (hasProcessing) {
+      candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.INTAKE, effectivePriority: 92 });
+      candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.PROCESSING, effectivePriority: 88 });
       candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.BATCHES, effectivePriority: 86 });
       candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.HISTORY, effectivePriority: 82 });
+    } else if (hasDispatch) {
+      candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.DISPATCH, effectivePriority: 92 });
+      candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.SHIPMENTS, effectivePriority: 88 });
+      if (hasDeliveries) candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.DELIVERIES, effectivePriority: 84 });
     } else {
-      if (hasHives) {
-        candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.HIVES, effectivePriority: 90 });
-      }
-      if (hasInspections && !hasProcessing) {
-        candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.INSPECTIONS, effectivePriority: 85 });
-      }
-      if (hasHoney && !hasProcessing) {
+      if (hasHives) candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.HIVES, effectivePriority: 90 });
+      if (hasInspections) candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.INSPECTIONS, effectivePriority: 85 });
+      if (hasHoney) {
         candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.HARVEST, effectivePriority: 80 });
         candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.JOURNEY, effectivePriority: 75 });
-      } else if (hasHoney) {
-        candidateItems.push({ ...NAVIGATION_ITEM_CATALOG.HONEY, effectivePriority: 80 });
-      }
-      if (hasProcessing) {
-        candidateItems.push({
-          ...NAVIGATION_ITEM_CATALOG.INTAKE,
-          effectivePriority: 89,
-          badge: operationalData.pendingIntakeCount > 0 ? operationalData.pendingIntakeCount : null
-        });
-        candidateItems.push({
-          ...NAVIGATION_ITEM_CATALOG.PROCESSING,
-          effectivePriority: 88,
-          badge: operationalData.activeBatchesCount > 0 ? operationalData.activeBatchesCount : null
-        });
       }
     }
   }
@@ -311,9 +301,10 @@ export function composeNavigation(capabilities = [], primaryDesignation = 'BEEKE
     .sort((a, b) => b.effectivePriority - a.effectivePriority);
 
   // Take top 3-4 middle items
-  const isPureBeekeeper = hasHives && hasInspections && hasHoney && !hasProcessing && !hasLab && !hasDispatch;
-  const isPureProcessor = hasProcessing && !hasHives && !hasLab && !hasDispatch;
-  const isPureLab = hasLab && !hasHives && !hasProcessing && !hasDispatch;
+  const isPureBeekeeper = isBeekeeperRole || (hasHives && hasInspections && hasHoney && !hasProcessing && !hasLab && !hasDispatch);
+  const isPureProcessor = isProcessorRole || (hasProcessing && !hasHives && !hasLab && !hasDispatch);
+  const isPureLab = isLabRole || (hasLab && !hasHives && !hasProcessing && !hasDispatch);
+  const isPureDistributor = isDispatchRole || (hasDispatch && !hasHives && !hasLab && !hasProcessing);
   const maxMiddle = (isPureBeekeeper || isPureProcessor || isPureLab || isPureDistributor) ? 4 : 3;
   const selectedMiddle = middleItems.slice(0, maxMiddle);
 
@@ -325,9 +316,14 @@ export function composeNavigation(capabilities = [], primaryDesignation = 'BEEKE
     return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
   });
 
+  const effectiveMiddle = selectedMiddle.length > 0 ? selectedMiddle : [
+    NAVIGATION_ITEM_CATALOG.HIVES,
+    NAVIGATION_ITEM_CATALOG.HONEY
+  ];
+
   const composed = [
     candidateItems[0], // Home
-    ...selectedMiddle,
+    ...effectiveMiddle,
     NAVIGATION_ITEM_CATALOG.MORE // More
   ];
 

@@ -114,8 +114,11 @@ export const LabOnboarding = ({ onComplete, onBack }) => {
         'LAB_WORKSPACE',
         'SAMPLE_INTAKE',
         'TEST_EXECUTION',
+        'TEST_ASSIGNMENT',
         'TEST_RESULT_ENTRY',
         'RESULT_REVIEW',
+        'QUALITY_RECOMMENDATION',
+        'TRACEABILITY_VERIFICATION',
         ...(form.accreditations.includes('NABL') || form.accreditations.includes('FSSAI_RECOGNISED')
           ? ['CERTIFICATE_GENERATION']
           : [])

@@ -8,6 +8,7 @@ import {
   ClipboardCheck,
   Camera,
   Archive,
+  Trash2,
   WifiOff,
   Thermometer,
   Layers,
@@ -28,6 +29,7 @@ export const HiveList = () => {
     setSelectedHiveId,
     openSheet,
     archiveHive,
+    deleteHive,
     captureHiveImage,
     isOnline,
     showToast,
@@ -123,6 +125,13 @@ export const HiveList = () => {
   const handleQuickRecord = (e, hiveId) => {
     e.stopPropagation();
     setRecordObsHiveId(hiveId);
+  };
+
+  const handleQuickTrash = (e, hive) => {
+    e.stopPropagation();
+    if (window.confirm(`Permanently trash and delete '${hive.name}' (${hive.code || 'colony'})? This will remove this hive and its frames from your database.`)) {
+      deleteHive(hive.id);
+    }
   };
 
   return (
@@ -374,6 +383,16 @@ export const HiveList = () => {
                       >
                         <Camera size={13} strokeWidth={2} />
                         <span>Scan</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        className="hcard-btn-trash"
+                        onClick={e => handleQuickTrash(e, hive)}
+                        title="Trash / Delete hive"
+                        aria-label={`Trash ${hive.name}`}
+                      >
+                        <Trash2 size={13} />
                       </button>
 
                       <span className="hcard-view-link">
@@ -800,6 +819,24 @@ export const HiveList = () => {
         .hcard-btn-scan:hover {
           background: #FFFDF8;
           border-color: #D99A24;
+        }
+        .hcard-btn-trash {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 26px;
+          height: 26px;
+          border-radius: 6px;
+          background: #FAF7F2;
+          border: 1px solid #EDE2D1;
+          color: var(--color-warm-gray, #786D61);
+          cursor: pointer;
+          transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+        }
+        .hcard-btn-trash:hover {
+          background: #FFF1F0;
+          color: #D9383A;
+          border-color: rgba(217, 56, 58, 0.35);
         }
         .hcard-view-link {
           display: inline-flex;

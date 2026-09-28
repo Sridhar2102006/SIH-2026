@@ -12,7 +12,8 @@ import {
   Cpu,
   FileCheck,
   ChevronRight,
-  Eye
+  Eye,
+  QrCode
 } from 'lucide-react';
 import { ProcessorDomainService, INTAKE_STATUSES } from '../../services/processorDomainService';
 import { PROCESSING_PROFILES, INITIAL_SOPS, getProfileByCode, getSopById } from '../../data/processor/processingProfiles';
@@ -95,7 +96,7 @@ export const CreateProcessingBatchModal = ({
 
   return (
     <div className="proc-modal-backdrop" onClick={onClose}>
-      <div className="proc-modal-sheet proc-modal-lg card" onClick={e => e.stopPropagation()}>
+      <div className="proc-modal-sheet proc-modal-lg" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="proc-modal-header">
           <div>
@@ -183,19 +184,23 @@ export const CreateProcessingBatchModal = ({
                     >
                       <input
                         type="checkbox"
+                        className="proc-checkbox-custom"
                         checked={isChecked}
                         onChange={() => {}} // handled by parent div
                         aria-label={`Select ${item.traceabilityCode}`}
                       />
                       <div className="proc-intake-pick-details">
                         <div className="proc-ip-row">
-                          <strong className="proc-ip-code">{item.traceabilityCode}</strong>
+                          <strong className="proc-ip-code">
+                            <QrCode size={15} color="#D97706" />
+                            <span>{item.traceabilityCode}</span>
+                          </strong>
                           <span className="proc-ip-qty">{item.receivedQuantityKg || item.quantityKg} kg</span>
                         </div>
                         <div className="proc-ip-sub">
-                          <span>{item.apiaryCode} · {item.hiveCode} · {item.frameNumber}</span>
-                          <span>{item.honeyType}</span>
-                          <span>Beekeeper: {item.submittingBeekeeper || 'Apiarist'}</span>
+                          <span className="proc-sub-badge">Hive {item.hiveCode || 'H001'} · Frame {item.frameNumber || 'F1'}</span>
+                          <span className="proc-sub-badge amber">{item.honeyType || 'Wildflower'}</span>
+                          <span className="proc-sub-beekeeper">Beekeeper: {item.submittingBeekeeper || 'Apiarist'}</span>
                         </div>
                       </div>
                     </div>
@@ -312,43 +317,257 @@ export const CreateProcessingBatchModal = ({
       </div>
 
       <style>{`
+        @keyframes procFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes procSlideUp {
+          from { opacity: 0; transform: translateY(16px) scale(0.98); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .proc-modal-backdrop {
+          position: fixed;
+          inset: 0;
+          background: rgba(26, 17, 8, 0.65);
+          backdrop-filter: blur(6px);
+          -webkit-backdrop-filter: blur(6px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1050;
+          padding: 16px;
+          animation: procFadeIn 0.2s ease-out;
+        }
+
+        .proc-modal-sheet.proc-modal-lg {
+          background: #FFFFFF;
+          width: 100%;
+          max-width: 820px;
+          max-height: 88vh;
+          border-radius: 24px;
+          box-shadow: 0 28px 70px -12px rgba(28, 17, 8, 0.42), 0 0 0 1px rgba(217, 119, 6, 0.2), 0 8px 24px rgba(0, 0, 0, 0.12);
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          position: relative;
+          animation: procSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .proc-modal-sheet.proc-modal-lg::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 4px;
+          background: linear-gradient(90deg, #D97706 0%, #F59E0B 45%, #FBBF24 70%, #B45309 100%);
+          z-index: 20;
+          box-shadow: 0 1px 6px rgba(217, 119, 6, 0.35);
+        }
+
+        .proc-modal-header {
+          padding: 20px 26px 18px;
+          border-bottom: 1px solid rgba(217, 119, 6, 0.14);
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          background: linear-gradient(180deg, #FFFDF9 0%, #FAF6EE 100%);
+          flex-shrink: 0;
+          position: relative;
+          z-index: 5;
+        }
+
+        .proc-badge-row {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+          margin-bottom: 6px;
+        }
+
+        .proc-badge-tag {
+          background: rgba(217, 119, 6, 0.12);
+          color: #B45309;
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          padding: 3px 8px;
+          border-radius: 6px;
+        }
+
         .proc-badge-sop {
           background: #FEF3C7;
           color: #92400E;
           font-size: 11px;
           font-weight: 700;
-          padding: 2px 8px;
-          border-radius: 4px;
+          padding: 3px 8px;
+          border-radius: 6px;
+          border: 1px solid #FDE68A;
         }
 
-        .proc-profile-pill-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-          gap: 10px;
-          margin-top: 6px;
+        .proc-modal-title {
+          margin: 0;
+          font-size: 20px;
+          font-weight: 800;
+          color: #2E1F14;
+          letter-spacing: -0.3px;
         }
 
-        .proc-prof-pill-card {
-          border: 1.5px solid #E5DCCB;
-          border-radius: 10px;
-          padding: 10px 12px;
-          background: #FFF;
+        .proc-close-btn {
+          background: transparent;
+          border: none;
+          color: #8C7E72;
+          width: 34px;
+          height: 34px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           cursor: pointer;
           transition: all 0.15s ease;
+          flex-shrink: 0;
+        }
+
+        .proc-close-btn:hover {
+          background: #F3EDE2;
+          color: #2E1F14;
+        }
+
+        .proc-modal-body {
+          padding: 20px 24px 24px;
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+          scrollbar-width: thin;
+          scrollbar-color: #D97706 transparent;
+        }
+
+        .proc-modal-body::-webkit-scrollbar {
+          width: 6px;
+        }
+        .proc-modal-body::-webkit-scrollbar-thumb {
+          background: #E5DCCB;
+          border-radius: 4px;
+        }
+        .proc-modal-body::-webkit-scrollbar-thumb:hover {
+          background: #D97706;
+        }
+
+        .proc-batch-preview-card {
+          background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+          border: 1.5px solid #FDE68A;
+          border-radius: 14px;
+          padding: 14px 18px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          box-shadow: 0 2px 8px rgba(217, 119, 6, 0.06);
+          flex-shrink: 0;
+        }
+
+        .proc-bp-left, .proc-bp-right {
           display: flex;
           flex-direction: column;
           gap: 3px;
         }
 
+        .proc-bp-right {
+          align-items: flex-end;
+          text-align: right;
+        }
+
+        .proc-bp-lbl {
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.4px;
+          color: #92400E;
+        }
+
+        .proc-bp-code {
+          font-family: 'JetBrains Mono', 'Fira Code', monospace;
+          font-size: 17px;
+          font-weight: 800;
+          color: #B45309;
+          letter-spacing: -0.3px;
+        }
+
+        .proc-bp-val {
+          font-size: 13.5px;
+          font-weight: 700;
+          color: #78350F;
+        }
+
+        .proc-form-group {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .proc-label {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 12.5px;
+          font-weight: 700;
+          color: #4A3B32;
+        }
+
+        .proc-intake-sel-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .proc-link-btn {
+          background: none;
+          border: none;
+          color: #D97706;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          padding: 2px 6px;
+          border-radius: 4px;
+          transition: background 0.15s;
+        }
+
+        .proc-link-btn:hover {
+          background: #FEF3C7;
+          text-decoration: underline;
+        }
+
+        .proc-profile-pill-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 10px;
+        }
+
+        .proc-prof-pill-card {
+          border: 1.5px solid #E5DCCB;
+          border-radius: 12px;
+          padding: 12px 14px;
+          background: #FFFFFF;
+          cursor: pointer;
+          transition: all 0.18s ease;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
         .proc-prof-pill-card:hover {
           border-color: #D97706;
           background: #FFFDF8;
+          transform: translateY(-1px);
+          box-shadow: 0 3px 10px rgba(217, 119, 6, 0.08);
         }
 
         .proc-prof-pill-card.active {
           border-color: #D97706;
           background: #FFFBEB;
-          box-shadow: 0 2px 8px rgba(217, 119, 6, 0.1);
+          box-shadow: 0 3px 12px rgba(217, 119, 6, 0.12);
         }
 
         .proc-ppc-header {
@@ -358,24 +577,200 @@ export const CreateProcessingBatchModal = ({
         }
 
         .proc-ppc-header strong {
-          font-size: 13px;
-          color: var(--color-deep-cocoa, #2E1F14);
+          font-size: 13.5px;
+          color: #2E1F14;
+          font-weight: 700;
         }
 
         .proc-ppc-tagline {
           font-size: 11.5px;
-          color: var(--color-warm-gray, #6B5B4E);
+          color: #6B5B4E;
+          line-height: 1.35;
         }
 
         .proc-ppc-steps-count {
           font-size: 11px;
-          font-weight: 700;
+          font-weight: 800;
           color: #D97706;
-          margin-top: 4px;
+          margin-top: 2px;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .proc-empty-box {
+          padding: 24px;
+          text-align: center;
+          background: #FAF6ED;
+          border: 1.5px dashed #D6CEBE;
+          border-radius: 12px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .proc-empty-box p {
+          margin: 0;
+          font-weight: 700;
+          color: #4A3B32;
+          font-size: 13.5px;
+        }
+
+        .proc-empty-box span {
+          font-size: 11.5px;
+          color: #8C7E72;
+        }
+
+        .proc-intake-pick-list {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          max-height: 220px;
+          overflow-y: auto;
+          padding-right: 4px;
+          scrollbar-width: thin;
+        }
+
+        .proc-intake-pick-card {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 14px;
+          background: #FFFFFF;
+          border: 1.5px solid #E5DCCB;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          user-select: none;
+        }
+
+        .proc-intake-pick-card:hover {
+          border-color: #D97706;
+          background: #FFFDF8;
+          box-shadow: 0 2px 8px rgba(217, 119, 6, 0.08);
+        }
+
+        .proc-intake-pick-card.active {
+          border-color: #D97706;
+          background: #FFFBEB;
+          box-shadow: 0 2px 10px rgba(217, 119, 6, 0.12);
+        }
+
+        .proc-checkbox-custom {
+          width: 18px;
+          height: 18px;
+          accent-color: #D97706;
+          cursor: pointer;
+          flex-shrink: 0;
+        }
+
+        .proc-intake-pick-details {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          min-width: 0;
+        }
+
+        .proc-ip-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .proc-ip-code {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 13.5px;
+          font-weight: 700;
+          color: #2E1F14;
+        }
+
+        .proc-ip-qty {
+          font-size: 12.5px;
+          font-weight: 800;
+          color: #B45309;
+          background: #FEF3C7;
+          border: 1px solid #FDE68A;
+          padding: 2px 9px;
+          border-radius: 20px;
+        }
+
+        .proc-ip-sub {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          align-items: center;
+          font-size: 11.5px;
+        }
+
+        .proc-sub-badge {
+          background: #F3EDE2;
+          color: #5C4D42;
+          font-size: 11px;
+          font-weight: 600;
+          padding: 2px 7px;
+          border-radius: 6px;
+        }
+
+        .proc-sub-badge.amber {
+          background: #FDF6E2;
+          color: #92400E;
+          font-weight: 700;
+          border: 1px solid #FDE68A;
+        }
+
+        .proc-sub-beekeeper {
+          color: #786C60;
+          font-size: 11px;
+          margin-left: auto;
+        }
+
+        .proc-field-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 14px;
+        }
+
+        @media (max-width: 600px) {
+          .proc-field-row {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        .proc-field-col {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          min-width: 0;
+        }
+
+        .proc-input,
+        .proc-select {
+          width: 100%;
+          box-sizing: border-box;
+          height: 42px;
+          padding: 0 12px;
+          font-size: 13px;
+          color: #2E1F14;
+          background: #FFFFFF;
+          border: 1.5px solid #D6CEBE;
+          border-radius: 10px;
+          transition: all 0.15s ease;
+          outline: none;
+        }
+
+        .proc-input:focus,
+        .proc-select:focus {
+          border-color: #D97706;
+          box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
         }
 
         .proc-plan-preview-toggle-bar {
-          margin: 6px 0;
+          margin: 2px 0;
         }
 
         .proc-preview-btn {
@@ -389,20 +784,24 @@ export const CreateProcessingBatchModal = ({
           font-weight: 700;
           cursor: pointer;
           padding: 4px 0;
+          transition: color 0.15s;
+        }
+
+        .proc-preview-btn:hover {
+          color: #B45309;
         }
 
         .proc-plan-preview-box {
           background: #FAF6ED;
           border: 1px solid #E5DCCB;
-          border-radius: 8px;
-          padding: 10px 12px;
-          margin-bottom: 12px;
+          border-radius: 10px;
+          padding: 12px 14px;
         }
 
         .proc-ppb-title {
           font-size: 11px;
           font-weight: 700;
-          color: var(--color-deep-cocoa, #2E1F14);
+          color: #2E1F14;
           display: block;
           margin-bottom: 8px;
         }
@@ -445,7 +844,7 @@ export const CreateProcessingBatchModal = ({
 
         .proc-ppb-info strong {
           font-size: 11.5px;
-          color: var(--color-deep-cocoa, #2E1F14);
+          color: #2E1F14;
         }
 
         .proc-ppb-req {
@@ -464,6 +863,42 @@ export const CreateProcessingBatchModal = ({
 
         .proc-ppb-req.conditional {
           color: #D97706;
+        }
+
+        .proc-modal-actions-single {
+          margin-top: 4px;
+          flex-shrink: 0;
+        }
+
+        .proc-submit-btn {
+          width: 100%;
+          height: 48px;
+          background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+          color: #FFFFFF;
+          font-size: 14.5px;
+          font-weight: 700;
+          border: none;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          cursor: pointer;
+          box-shadow: 0 4px 14px rgba(217, 119, 6, 0.25);
+          transition: all 0.2s ease;
+        }
+
+        .proc-submit-btn:hover:not(:disabled) {
+          background: linear-gradient(135deg, #B45309 0%, #92400E 100%);
+          transform: translateY(-1px);
+          box-shadow: 0 6px 18px rgba(217, 119, 6, 0.35);
+        }
+
+        .proc-submit-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          box-shadow: none;
+          transform: none;
         }
       `}</style>
     </div>

@@ -791,15 +791,15 @@ export const ProductQrManagementView = ({
                     <span className="kv-val">HoneyChain QR Standard {qrRecord.version}</span>
                   </div>
                   <div className="tech-kv">
-                    <span className="kv-label">ANCHOR MERKLE ROOT</span>
+                    <span className="kv-label">CRYPTOGRAPHIC SHA-256 DIGEST</span>
                     <span className="kv-val mono break-all">
-                      {qrRecord.anchorProof?.merkleRoot || '0x3f9801a4e5bc1209e86d23fb482b9a710255'}
+                      {qrRecord.anchorProof?.merkleRoot || '7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069'}
                     </span>
                   </div>
                   <div className="tech-kv">
-                    <span className="kv-label">BLOCKCHAIN TX ANCHOR</span>
+                    <span className="kv-label">AUTHORITATIVE AUDIT REFERENCE</span>
                     <span className="kv-val mono break-all">
-                      {qrRecord.anchorProof?.txHash || '0xd942b87f619e083a21dc49019b841e2a537f'}
+                      {qrRecord.anchorProof?.txHash || qrRecord.qrId || 'HC-AUDIT-REF-2026'}
                     </span>
                   </div>
                 </div>

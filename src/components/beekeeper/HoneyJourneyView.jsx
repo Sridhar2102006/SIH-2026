@@ -13,9 +13,12 @@ import {
   Truck,
   Droplet,
   Info,
-  QrCode
+  QrCode,
+  AlertCircle,
+  Send
 } from 'lucide-react';
 import { useAppState } from '../../context/AppStateContext';
+import { SubmitToProcessorModal } from './SubmitToProcessorModal';
 
 export const HoneyJourneyView = () => {
   const {
@@ -29,44 +32,63 @@ export const HoneyJourneyView = () => {
   const [expandedTraceCode, setExpandedTraceCode] = useState(
     handoverRecords[0]?.traceabilityCode || harvestRecords[0]?.traceabilityCode || 'AP1H001F5'
   );
+  const [selectedFrameForSubmit, setSelectedFrameForSubmit] = useState(null);
 
-  // Combine tracked items
+  // Combine and deduplicate tracked items strictly by traceability code
   const trackedItems = React.useMemo(() => {
-    const list = [];
+    const itemMap = new Map();
 
-    // Items from handovers
-    handoverRecords.forEach(hnd => {
-      list.push({
+    // 1. Process Handover Records
+    (handoverRecords || []).forEach(hnd => {
+      const code = String(hnd.traceabilityCode || '').toUpperCase().trim();
+      if (!code) return;
+
+      const isReceived = hnd.status === 'RECEIVED' || hnd.status === 'ASSIGNED_TO_BATCH';
+      const currentStage = isReceived ? 'PROCESSING' : 'SUBMITTED';
+      const currentStageLabel = isReceived
+        ? 'In Processing (Settling & Extraction)'
+        : 'Submitted (Awaiting Processor Intake)';
+
+      const etaNext = isReceived
+        ? (hnd.downstreamJourney?.processing?.etaNextStep || 'Tomorrow, 10:00 AM')
+        : 'Awaiting Processor Intake Verification';
+
+      const entry = {
         id: hnd.id,
+        handoverId: hnd.id,
         traceabilityCode: hnd.traceabilityCode,
+        frameNumber: hnd.frameNumber,
+        hiveCode: hnd.hiveCode,
         quantityKg: hnd.quantityKg,
         honeyType: hnd.honeyType,
-        facility: hnd.receivingFacility,
-        currentStage: 'PROCESSING',
-        currentStageLabel: 'In Processing (Settling & Clarification)',
-        etaNextStep: hnd.downstreamJourney?.processing?.etaNextStep || 'Tomorrow, 10:00 AM',
-        etaDispatch: hnd.downstreamJourney?.dispatch?.eta || '30 Sep 2026',
+        facility: hnd.receivingFacility || 'On-site Honey Processing House #2',
+        currentStage,
+        currentStageLabel,
+        etaNextStep: etaNext,
+        etaDispatch: isReceived ? (hnd.downstreamJourney?.dispatch?.eta || '30 Sep 2026') : null,
         stages: [
           {
             name: 'Harvest',
             status: 'completed',
-            timestamp: hnd.downstreamJourney?.harvest?.timestamp || '24 Sep · 14:15',
+            timestamp: hnd.downstreamJourney?.harvest?.timestamp || '25 Sep · 10:00',
             handler: 'Sarah Lindqvist (Beekeeper)',
-            details: `Net yield ${hnd.quantityKg} kg harvested from ${hnd.hiveCode}. Cold unheated comb extraction.`
+            details: `Net yield ${hnd.quantityKg} kg harvested from Hive ${hnd.hiveCode || 'H001'}. Cold unheated comb extraction.`
           },
           {
             name: 'Submitted to Processor',
             status: 'completed',
-            timestamp: hnd.submissionTimestamp || '25 Sep · 10:00',
-            handler: hnd.submittingBeekeeper,
-            details: `Delivered to ${hnd.receivingFacility}. Custody seal verified.`
+            timestamp: hnd.submissionTimestamp || 'Just now',
+            handler: hnd.submittingBeekeeper || 'Sarah Lindqvist',
+            details: `Delivered to ${hnd.receivingFacility || 'On-site Honey Processing House #2'}. Container security seal verified.`
           },
           {
             name: 'Processing',
-            status: 'active',
-            timestamp: 'Started 25 Sep · 11:30',
-            handler: 'Marcus K. (Processing Lead)',
-            details: 'Centrifugal extraction completed. Currently clarifying micro-air bubbles in Settling Tank #2 at 20°C.'
+            status: isReceived ? 'active' : 'pending',
+            timestamp: isReceived ? (hnd.downstreamJourney?.processing?.startedAt || 'Started today') : null,
+            handler: isReceived ? 'Marcus K. (Processing Lead)' : 'Awaiting Processing Operator',
+            details: isReceived
+              ? (hnd.downstreamJourney?.processing?.currentStep || 'Intake verified. Centrifugal extraction and micro-air settling active.')
+              : 'Manifest in transit. Awaiting physical container intake verification at processing bay.'
           },
           {
             name: 'Quality Testing',
@@ -90,35 +112,48 @@ export const HoneyJourneyView = () => {
             details: 'Estimated delivery window follows packaging completion.'
           }
         ]
-      });
+      };
+
+      itemMap.set(code, entry);
     });
 
-    // Harvested items not yet submitted
-    harvestRecords.filter(h => !h.submittedToProcessor).forEach(hrv => {
-      list.push({
+    // 2. Process Harvest Records (only if not already submitted or present in handovers)
+    (harvestRecords || []).forEach(hrv => {
+      const code = String(hrv.traceabilityCode || '').toUpperCase().trim();
+      if (!code) return;
+
+      // If already in itemMap with an official handover, do not duplicate
+      if (itemMap.has(code)) return;
+
+      const isSubmitted = Boolean(hrv.submittedToProcessor);
+
+      itemMap.set(code, {
         id: hrv.id,
+        harvestRecordId: hrv.id,
         traceabilityCode: hrv.traceabilityCode,
+        frameNumber: hrv.frameNumber,
+        hiveCode: hrv.hiveCode || hrv.hiveName,
         quantityKg: hrv.quantityKg,
         honeyType: hrv.honeyType,
-        facility: 'Apiary Storage',
-        currentStage: 'HARVESTED',
-        currentStageLabel: 'Harvested (Ready for Handover)',
-        etaNextStep: 'Awaiting Handover Submission',
-        etaDispatch: null, // Section 28: Never invent ETA values!
+        facility: isSubmitted ? 'On-site Honey Processing House #2' : 'Apiary Honey Super Storage',
+        currentStage: isSubmitted ? 'SUBMITTED' : 'HARVESTED',
+        currentStageLabel: isSubmitted ? 'Submitted (Awaiting Processor Intake)' : 'Harvested (Ready for Handover)',
+        etaNextStep: isSubmitted ? 'Awaiting Processor Intake Verification' : 'Awaiting Handover Submission',
+        etaDispatch: null,
         stages: [
           {
             name: 'Harvest',
             status: 'completed',
             timestamp: `${hrv.harvestDate} · ${hrv.harvestTime}`,
             handler: hrv.submittingBeekeeper || 'Sarah Lindqvist',
-            details: `${hrv.quantityKg} kg ${hrv.honeyType} logged from ${hrv.hiveName || hrv.hiveCode}.`
+            details: `${hrv.quantityKg} kg ${hrv.honeyType} logged from ${hrv.hiveName || hrv.hiveCode || 'Hive'}.`
           },
           {
             name: 'Submitted to Processor',
-            status: 'pending',
-            timestamp: null,
-            handler: 'Not submitted yet',
-            details: 'Submit this frame when ready to deliver to the processing facility.'
+            status: isSubmitted ? 'completed' : 'pending',
+            timestamp: isSubmitted ? 'Recently' : null,
+            handler: isSubmitted ? (hrv.submittingBeekeeper || 'Sarah Lindqvist') : 'Not submitted yet',
+            details: isSubmitted ? 'Delivered to processor.' : 'Submit this frame when ready to deliver to the processing facility.'
           },
           {
             name: 'Processing',
@@ -152,7 +187,7 @@ export const HoneyJourneyView = () => {
       });
     });
 
-    return list;
+    return Array.from(itemMap.values());
   }, [handoverRecords, harvestRecords]);
 
   return (
@@ -253,6 +288,30 @@ export const HoneyJourneyView = () => {
                       </span>
                     )}
                   </div>
+
+                  {/* Action Bar for Harvested frames awaiting submission */}
+                  {item.currentStage === 'HARVESTED' && (
+                    <div className="bk-journey-action-bar">
+                      <div className="bk-jab-text">
+                        <AlertCircle size={16} color="#D97706" />
+                        <div>
+                          <strong>Harvested · Ready for Handover</strong>
+                          <p>Submit this frame to transfer physical custody to the processing facility.</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-primary btn-sm bk-jab-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedFrameForSubmit(item);
+                        }}
+                      >
+                        <Send size={13} />
+                        <span>Submit for Processing</span>
+                      </button>
+                    </div>
+                  )}
 
                   {/* Expanded Stage Timeline (Section 29) */}
                   {isExpanded && (
@@ -531,7 +590,60 @@ export const HoneyJourneyView = () => {
           margin: 0;
           line-height: 1.4;
         }
+
+        .bk-journey-action-bar {
+          margin-top: 14px;
+          background: #FEF3C7;
+          border: 1px solid #FCD34D;
+          border-radius: 10px;
+          padding: 12px 14px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+        .bk-jab-text {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex: 1;
+          min-width: 200px;
+        }
+        .bk-jab-text strong {
+          display: block;
+          font-size: 13px;
+          font-weight: 700;
+          color: #92400E;
+          margin-bottom: 2px;
+        }
+        .bk-jab-text p {
+          margin: 0;
+          font-size: 12px;
+          color: #B45309;
+          line-height: 1.3;
+        }
+        .bk-jab-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-weight: 700;
+          white-space: nowrap;
+          box-shadow: 0 2px 4px rgba(217, 119, 6, 0.25);
+        }
       `}</style>
+
+      {selectedFrameForSubmit && (
+        <SubmitToProcessorModal
+          isOpen={Boolean(selectedFrameForSubmit)}
+          onClose={() => setSelectedFrameForSubmit(null)}
+          initialFrameId={selectedFrameForSubmit.traceabilityCode || selectedFrameForSubmit.id}
+          initialFrame={selectedFrameForSubmit}
+          onSubmitSuccess={() => {
+            setSelectedFrameForSubmit(null);
+          }}
+        />
+      )}
     </div>
   );
 };

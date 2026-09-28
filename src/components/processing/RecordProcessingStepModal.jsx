@@ -137,7 +137,7 @@ export const RecordProcessingStepModal = ({
 
   return (
     <div className="proc-modal-backdrop" onClick={onClose}>
-      <div className="proc-modal-sheet proc-modal-lg card" onClick={e => e.stopPropagation()}>
+      <div className="proc-modal-sheet proc-modal-lg" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="proc-modal-header">
           <div>
@@ -227,7 +227,9 @@ export const RecordProcessingStepModal = ({
                     <label className="proc-d-label">
                       <span>{p.label}</span>
                       {p.required && <span className="text-red">*</span>}
-                      {p.unit && <span className="proc-d-unit">({p.unit})</span>}
+                      {p.unit && !p.label.toLowerCase().includes(p.unit.toLowerCase()) && (
+                        <span className="proc-d-unit">({p.unit})</span>
+                      )}
                     </label>
 
                     {isBoolean ? (
@@ -348,13 +350,106 @@ export const RecordProcessingStepModal = ({
       </div>
 
       <style>{`
+        .proc-step-selector-row {
+          display: flex;
+          gap: 8px;
+          overflow-x: auto;
+          padding: 4px 2px 8px;
+          scrollbar-width: thin;
+        }
+
+        .proc-step-pill-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 14px;
+          border-radius: 9999px;
+          background: #FFFFFF;
+          border: 1.5px solid #E5DCCB;
+          color: #5C4B3C;
+          font-size: 13px;
+          font-weight: 650;
+          cursor: pointer;
+          transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+          white-space: nowrap;
+          box-shadow: 0 1px 3px rgba(52, 38, 27, 0.04);
+        }
+
+        .proc-step-pill-btn:hover {
+          border-color: #D97706;
+          background: #FFFDF8;
+          transform: translateY(-1px);
+        }
+
+        .proc-step-pill-btn.active {
+          background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+          border-color: #D97706;
+          color: #B45309;
+          box-shadow: 0 2px 8px rgba(217, 119, 6, 0.18);
+        }
+
+        .proc-step-pill-btn.completed {
+          border-color: #A7F3D0;
+          background: #F0FDF4;
+          color: #065F46;
+        }
+
+        .proc-pill-num {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: rgba(120, 109, 97, 0.12);
+          font-size: 11px;
+          font-weight: 800;
+        }
+
+        .proc-step-pill-btn.active .proc-pill-num {
+          background: #D97706;
+          color: #FFFFFF;
+        }
+
+        .proc-step-pill-btn.completed .proc-pill-num {
+          background: #059669;
+          color: #FFFFFF;
+        }
+
+        .proc-pill-check {
+          color: #059669;
+        }
+
+        .proc-step-desc {
+          font-size: 12.5px;
+          color: #786D61;
+          margin: 6px 0 0;
+          line-height: 1.4;
+        }
+
+        .proc-err-box {
+          display: flex;
+          gap: 10px;
+          background: #FEF2F2;
+          border: 1.5px solid #F87171;
+          border-radius: 12px;
+          padding: 12px 16px;
+          color: #991B1B;
+          font-size: 13px;
+        }
+
+        .proc-err-box ul {
+          margin: 4px 0 0;
+          padding-left: 18px;
+        }
+
         .proc-warn-box {
           display: flex;
           gap: 10px;
           background: #FFFBEB;
           border: 1.5px solid #F59E0B;
-          border-radius: 8px;
-          padding: 10px 12px;
+          border-radius: 12px;
+          padding: 12px 16px;
           margin-bottom: 14px;
         }
 
@@ -373,96 +468,138 @@ export const RecordProcessingStepModal = ({
         }
 
         .proc-dynamic-params-container {
-          background: #FAF6ED;
-          border: 1px solid var(--color-divider, #E5DCCB);
-          border-radius: 10px;
-          padding: 14px;
+          background: linear-gradient(135deg, #FFFDF9 0%, #FAF6EE 100%);
+          border: 1.5px solid rgba(217, 119, 6, 0.2);
+          border-radius: 16px;
+          padding: 18px 20px;
           margin-bottom: 14px;
+          box-shadow: 0 4px 16px rgba(52, 38, 27, 0.04);
         }
 
         .proc-dpc-header {
-          margin-bottom: 12px;
+          margin-bottom: 14px;
         }
 
         .proc-dpc-title {
-          font-size: 13.5px;
-          font-weight: 700;
-          color: var(--color-deep-cocoa, #2E1F14);
+          font-size: 14px;
+          font-weight: 800;
+          color: #2E1F14;
           display: block;
+          letter-spacing: -0.2px;
         }
 
         .proc-dpc-sub {
-          font-size: 11.5px;
-          color: var(--color-warm-gray, #6B5B4E);
+          font-size: 12px;
+          color: #786D61;
         }
 
         .proc-dynamic-fields-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-          gap: 12px;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 16px;
+          align-items: start;
         }
 
         .proc-d-field {
           display: flex;
           flex-direction: column;
-          gap: 4px;
+          gap: 6px;
+          width: 100%;
         }
 
         .proc-d-label {
-          font-size: 12px;
-          font-weight: 600;
-          color: var(--color-deep-cocoa, #2E1F14);
+          font-size: 12.5px;
+          font-weight: 700;
+          color: #2E1F14;
           display: flex;
           align-items: center;
-          gap: 4px;
+          gap: 6px;
         }
 
         .proc-d-unit {
-          color: var(--color-warm-gray, #6B5B4E);
-          font-weight: 400;
+          color: #786D61;
+          font-weight: 500;
+          font-size: 11.5px;
         }
 
         .proc-input-unit-wrap {
           display: flex;
           align-items: center;
           position: relative;
+          width: 100%;
+        }
+
+        .proc-input-unit-wrap .proc-input {
+          width: 100%;
+          height: 44px;
+          padding: 10px 48px 10px 14px;
+          border-radius: 10px;
+          border: 1.5px solid #D1C7B7;
+          background: #FFFFFF;
+          font-size: 14px;
+          font-weight: 600;
+          color: #2E1F14;
+          box-sizing: border-box;
+          transition: all 0.18s ease;
+        }
+
+        .proc-input-unit-wrap .proc-input:focus {
+          outline: none;
+          border-color: #D97706;
+          box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.18);
+          background: #FFFDF9;
         }
 
         .proc-unit-addon {
           position: absolute;
-          right: 10px;
+          right: 14px;
           font-size: 12px;
-          color: var(--color-warm-gray, #6B5B4E);
+          font-weight: 750;
+          color: #8C7355;
           pointer-events: none;
+          text-transform: uppercase;
         }
 
         .proc-field-hint {
-          font-size: 10.5px;
+          font-size: 11px;
           color: #92400E;
-          line-height: 1.3;
+          line-height: 1.35;
         }
 
         .proc-bool-toggle {
           display: flex;
           gap: 8px;
+          width: 100%;
         }
 
         .proc-bool-btn {
           flex: 1;
-          padding: 7px 10px;
-          border-radius: 6px;
-          border: 1px solid #D1C7B7;
-          background: #FFF;
-          font-size: 12px;
-          font-weight: 600;
-          color: var(--color-deep-cocoa, #2E1F14);
+          height: 44px;
+          padding: 0 12px;
+          border-radius: 10px;
+          border: 1.5px solid #D1C7B7;
+          background: #FFFFFF;
+          font-size: 13px;
+          font-weight: 700;
+          color: #5C4B3C;
           cursor: pointer;
+          transition: all 0.18s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 1px 3px rgba(52, 38, 27, 0.04);
+        }
+
+        .proc-bool-btn:hover {
+          border-color: #D97706;
+          background: #FFFDF9;
         }
 
         .proc-bool-btn.active {
-          background: #D97706;
-          border-color: #D97706;
-          color: #FFF;
+          background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+          border-color: #B45309;
+          color: #FFFFFF;
+          box-shadow: 0 2px 8px rgba(217, 119, 6, 0.25);
         }
 
         .proc-evidence-row {

@@ -25,7 +25,7 @@ export const Toast = ({ message }) => {
           align-items: center;
           gap: 8px;
           box-shadow: 0 8px 24px rgba(52, 38, 27, 0.25);
-          z-index: 200;
+          z-index: 100000;
           animation: slideDownFade 0.25s ease-out;
           white-space: nowrap;
         }

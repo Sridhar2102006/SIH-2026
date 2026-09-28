@@ -112,7 +112,11 @@ export const BeekeeperOnboarding = ({ onComplete, onBack }) => {
         'HIVE_INSPECTION',
         'HONEY_COLLECTION',
         'BEE_OBSERVATION',
-        'HIVE_IMAGE_CAPTURE'
+        'HIVE_IMAGE_CAPTURE',
+        'BEE_HEALTH_SCAN',
+        'CONNECTED_HIVE_MONITORING',
+        'BATCH_TRACEABILITY',
+        'COLLECTION_BATCH_LINK'
       ],
       workContexts: {
         areas: ['Apiary / outdoor farm'],

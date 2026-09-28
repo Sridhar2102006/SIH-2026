@@ -19,9 +19,9 @@ import {
   Tag,
   ChevronRight,
   Shield,
-  Layers,
   Edit2,
   Archive,
+  Trash2,
   Settings
 } from 'lucide-react';
 import { HiveTechnicalSheet } from './HiveTechnicalSheet';
@@ -34,6 +34,7 @@ export const HiveDetail = ({ hiveId, onBack }) => {
     batches,
     openSheet,
     archiveHive,
+    deleteHive,
     openScanModal,
     openInspectionResult,
     setSelectedBatchId,
@@ -79,6 +80,14 @@ export const HiveDetail = ({ hiveId, onBack }) => {
     setIsMenuOpen(false);
     if (window.confirm(`Archive ${hive.name}? Its history will remain available, but it will no longer appear in your active hive list.`)) {
       archiveHive(hive.id);
+      onBack();
+    }
+  };
+
+  const handleTrash = () => {
+    setIsMenuOpen(false);
+    if (window.confirm(`Permanently trash and delete ${hive.name} (${hive.code || 'colony'})? This will remove this hive and its frames from your database.`)) {
+      deleteHive(hive.id);
       onBack();
     }
   };
@@ -175,12 +184,22 @@ export const HiveDetail = ({ hiveId, onBack }) => {
 
                 <button
                   type="button"
-                  className="hd-menu-item danger"
+                  className="hd-menu-item"
                   onClick={handleArchive}
                   role="menuitem"
                 >
                   <Archive size={15} />
                   <span>Archive hive</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="hd-menu-item danger"
+                  onClick={handleTrash}
+                  role="menuitem"
+                >
+                  <Trash2 size={15} color="#D9383A" />
+                  <span>Trash hive (delete)</span>
                 </button>
               </div>
             )}

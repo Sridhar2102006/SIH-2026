@@ -105,7 +105,7 @@ export const IntakeVerificationModal = ({
 
   return (
     <div className="proc-modal-backdrop" onClick={onClose}>
-      <div className="proc-modal-sheet card" onClick={e => e.stopPropagation()}>
+      <div className="proc-modal-sheet" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="proc-modal-header">
           <div>
@@ -486,19 +486,33 @@ export const IntakeVerificationModal = ({
 
         .proc-modal-sheet {
           width: 100%;
-          max-width: 540px;
+          max-width: 580px;
           max-height: 90vh;
           background: #FFFFFF;
-          border-radius: 20px 20px 0 0;
+          border-radius: 24px 24px 0 0;
           display: flex;
           flex-direction: column;
-          box-shadow: 0 -8px 32px rgba(44, 24, 16, 0.2);
+          box-shadow: 0 28px 70px -12px rgba(28, 17, 8, 0.42), 0 0 0 1px rgba(217, 119, 6, 0.2), 0 8px 24px rgba(0, 0, 0, 0.12);
           overflow: hidden;
+          position: relative;
+          animation: procSlideUpModal 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .proc-modal-sheet::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 4px;
+          background: linear-gradient(90deg, #D97706 0%, #F59E0B 45%, #FBBF24 70%, #B45309 100%);
+          z-index: 20;
+          box-shadow: 0 1px 6px rgba(217, 119, 6, 0.35);
         }
 
         @media (min-width: 600px) {
           .proc-modal-sheet {
-            border-radius: 16px;
+            border-radius: 24px;
           }
         }
 
@@ -506,9 +520,12 @@ export const IntakeVerificationModal = ({
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
-          padding: 18px 20px;
-          border-bottom: 1px solid var(--color-divider, #E5DCCB);
-          background: #FFFDF8;
+          padding: 20px 24px 18px;
+          border-bottom: 1px solid rgba(217, 119, 6, 0.14);
+          background: linear-gradient(180deg, #FFFDF9 0%, #FAF6EE 100%);
+          flex-shrink: 0;
+          position: relative;
+          z-index: 5;
         }
 
         .proc-badge-row {

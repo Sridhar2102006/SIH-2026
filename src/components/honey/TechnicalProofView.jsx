@@ -615,16 +615,16 @@ export const TechnicalProofView = ({
                 <p className="tg-def">A unique cryptographic reference for the technical transaction.</p>
               </div>
               <div className="tech-glossary-item">
-                <span className="tg-term">Block number</span>
-                <p className="tg-def">The blockchain record containing this notarized batch transaction.</p>
+                <span className="tg-term">Audit record</span>
+                <p className="tg-def">The authoritative record containing this notarized batch consignment.</p>
               </div>
               <div className="tech-glossary-item">
-                <span className="tg-term">Consortium network</span>
-                <p className="tg-def">The distributed ledger maintained by verified regional apiary associations.</p>
+                <span className="tg-term">Authoritative gateway</span>
+                <p className="tg-def">The verified multi-party gateway maintained by regional apiary associations.</p>
               </div>
               <div className="tech-glossary-item">
-                <span className="tg-term">Registry contract</span>
-                <p className="tg-def">The application logic that enforces required evidence before notarization.</p>
+                <span className="tg-term">Validation rules engine</span>
+                <p className="tg-def">The application logic that enforces required evidence before verification.</p>
               </div>
             </div>
           </section>
@@ -1055,7 +1055,7 @@ export const TechnicalProofView = ({
                   <div className="tech-preset-text">
                     <strong>3. Verified + Proof Failed</strong>
                     <p>
-                      Network timeout on blockchain anchor: Business verification remains valid, with an
+                      Network timeout on verification gateway: Business verification remains valid, with an
                       idempotent "Try again" retry CTA.
                     </p>
                   </div>

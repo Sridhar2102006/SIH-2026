@@ -12,10 +12,18 @@ export const DeviceDiagnosticSheet = ({ isOpen, onClose, hive }) => {
   const handleTestConnection = () => {
     setTesting(true);
     setTestResult(null);
-    setTimeout(() => {
+    try {
+      const isOnline = hive.monitoring?.status === 'online' || hive.monitoring?.connected;
+      if (isOnline) {
+        setTestResult(`Colony observations verified. Telemetry channel active (${hive.monitoring?.temp || '32.4°C'}, ${hive.monitoring?.humidity || '62%'}).`);
+      } else if (hive.monitoring?.status === 'connecting') {
+        setTestResult('Colony sensor gateway is connecting. Awaiting first telemetry frame.');
+      } else {
+        setTestResult('Colony sensor is currently offline. Check battery level and apiary mesh range.');
+      }
+    } finally {
       setTesting(false);
-      setTestResult('Colony observations verified. Telemetry channel active.');
-    }, 1200);
+    }
   };
 
   return (

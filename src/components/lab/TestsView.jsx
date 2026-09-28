@@ -25,11 +25,13 @@ import {
   X,
   ShieldCheck,
   AlertCircle,
-  Search
+  Search,
+  Send
 } from 'lucide-react';
 import {
   LAB_TEST_CATALOG,
   LAB_EQUIPMENT_CATALOG,
+  SAMPLE_STATUS_LABELS,
   TEST_STATUSES,
   TEST_STATUS_LABELS,
   TEST_PRIORITIES,
@@ -43,6 +45,7 @@ export const TestsView = () => {
     assignLabTest,
     startLabTest,
     recordTestMeasurement,
+    sendLabReportToProcessorAndDispatch,
     showToast,
     session
   } = useAppState();
@@ -358,14 +361,39 @@ export const TestsView = () => {
                           {TEST_STATUS_LABELS[test.status] || test.status}
                         </span>
                       </div>
-                      <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
-                        Sample: <strong style={{ color: '#172033' }}>{test.sampleId}</strong> · Method: {test.method}
+                      <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span>Sample: <strong style={{ color: '#172033' }}>{test.sampleId}</strong> · Method: {test.method}</span>
+                        {(() => {
+                          const parentSample = labSamples.find(s => s.id === test.sampleId);
+                          if (parentSample?.coaDocumentId) {
+                            return (
+                              <span
+                                style={{
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  color: '#059669',
+                                  backgroundColor: '#ECFDF5',
+                                  padding: '1px 6px',
+                                  borderRadius: '4px',
+                                  border: '1px solid #A7F3D0',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '3px'
+                                }}
+                              >
+                                <ShieldCheck size={12} />
+                                CoA Sent ({parentSample.coaDocumentId})
+                              </span>
+                            );
+                          }
+                          return null;
+                        })()}
                       </div>
                     </div>
                   </div>
 
                   {/* Right Action buttons */}
-                  <div style={{ display: 'flex', gap: '6px' }}>
+                  <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
                     {isAssigned && (
                       <button
                         className="btn btn-primary btn-sm"
@@ -389,13 +417,39 @@ export const TestsView = () => {
                     )}
 
                     {isCompleted && (
-                      <button
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => openRecordModal(test)}
-                        style={{ fontSize: '12px', padding: '5px 10px' }}
-                      >
-                        <span>Edit / View Finding</span>
-                      </button>
+                      <>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => openRecordModal(test)}
+                          style={{ fontSize: '12px', padding: '5px 10px' }}
+                        >
+                          <span>Edit / View Finding</span>
+                        </button>
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => {
+                            if (sendLabReportToProcessorAndDispatch) {
+                              sendLabReportToProcessorAndDispatch({
+                                sampleId: test.sampleId,
+                                notes: `Assay completed: ${test.testName} (${test.result} ${test.unit}). Official Lab Report transmitted to Processor and Dispatch Unit.`
+                              });
+                            }
+                          }}
+                          style={{
+                            fontSize: '12px',
+                            padding: '5px 10px',
+                            backgroundColor: '#059669',
+                            borderColor: '#059669',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                          title="Transmit official lab report and CoA to both Processor & Dispatch Unit"
+                        >
+                          <Send size={12} />
+                          <span>Send Report to Processor & Dispatch</span>
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -487,7 +541,7 @@ export const TestsView = () => {
                 >
                   {labSamples.map(s => (
                     <option key={s.id} value={s.id}>
-                      {s.id} · Batch {s.sourceBatchNumber} ({SAMPLE_STATUS_LABELS[s.intakeStatus]})
+                      {s.id} · Batch {s.sourceBatchNumber || 'N/A'} ({SAMPLE_STATUS_LABELS?.[s.intakeStatus] || s.intakeStatus || 'Pending'})
                     </option>
                   ))}
                 </select>

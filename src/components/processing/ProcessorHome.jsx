@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAppState } from '../../context/AppStateContext';
 import {
-  Inbox,
+  MessageSquare,
   Cpu,
   Layers,
   CheckCircle2,
@@ -35,6 +35,7 @@ export const ProcessorHome = ({
   const {
     session,
     handoverRecords = [],
+    harvestRecords = [],
     processingBatches = [],
     setActiveTab,
     showToast
@@ -51,10 +52,24 @@ export const ProcessorHome = ({
   const activeSOP = ProcessorProfileService.getActiveSOP();
 
   // Metrics according to §43: Receiving, Processing, Quality handoff, Packaging, Exceptions
-  const pendingIntakes = handoverRecords.filter(h => h.status === INTAKE_STATUSES.SUBMITTED_TO_PROCESSOR || h.status === INTAKE_STATUSES.AWAITING_INTAKE);
+  const isAwaitingStatus = (status) => (
+    status === 'SUBMITTED_TO_PROCESSOR' ||
+    status === INTAKE_STATUSES.SUBMITTED_TO_PROCESSOR ||
+    status === 'SUBMITTED_BY_BEEKEEPER' ||
+    status === INTAKE_STATUSES.SUBMITTED_BY_BEEKEEPER ||
+    status === 'AWAITING_INTAKE' ||
+    status === INTAKE_STATUSES.AWAITING_INTAKE ||
+    status === 'HARVESTED' ||
+    !status
+  );
+  const pendingIntakes = [
+    ...handoverRecords.filter(h => isAwaitingStatus(h.status)),
+    ...(harvestRecords || []).filter(hrv => !handoverRecords.some(h => (hrv.id && h.harvestRecordId === hrv.id) || h.id === hrv.id))
+  ];
   const inProcessingBatches = processingBatches.filter(b => b.status === BATCH_STATUSES.IN_PROCESSING);
   const onHoldBatches = processingBatches.filter(b => b.status === BATCH_STATUSES.ON_HOLD);
   const readyForQualityBatches = processingBatches.filter(b => b.status === BATCH_STATUSES.READY_FOR_QUALITY || b.status === BATCH_STATUSES.PROCESSING_COMPLETE);
+  const certifiedBatches = processingBatches.filter(b => b.status === BATCH_STATUSES.QUALITY_PASSED || b.labReport || b.coaDocumentId);
   const packagingReadyBatches = processingBatches.filter(b => b.status === BATCH_STATUSES.READY_FOR_QUALITY || b.status === BATCH_STATUSES.PROCESSING_COMPLETE || b.status === 'READY_FOR_PACKAGING');
 
   // Exceptions count: on-hold batches + batches with unresolved deviations + on-hold intakes
@@ -104,7 +119,32 @@ export const ProcessorHome = ({
             }}
           >
             <div className="proc-att-top">
-              <Inbox size={17} color="#D97706" />
+              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+                <MessageSquare size={18} color="#D97706" />
+                {pendingIntakes.length > 0 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '-6px',
+                    right: '-8px',
+                    background: '#25D366',
+                    color: '#FFFFFF',
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    minWidth: '16px',
+                    height: '16px',
+                    borderRadius: '8px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0 3px',
+                    border: '1.5px solid #FFFFFF',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                    lineHeight: 1
+                  }}>
+                    {pendingIntakes.length}
+                  </span>
+                )}
+              </div>
               <span className="proc-att-count">{pendingIntakes.length}</span>
             </div>
             <span className="proc-att-lbl">Receiving</span>
@@ -131,8 +171,7 @@ export const ProcessorHome = ({
           <div
             className={`proc-att-card ${readyForQualityBatches.length > 0 ? 'success' : ''}`}
             onClick={() => {
-              if (onNavigateToBatches) onNavigateToBatches('READY_FOR_QUALITY');
-              else setActiveTab('batches');
+              setActiveTab('quality');
             }}
           >
             <div className="proc-att-top">
@@ -143,20 +182,21 @@ export const ProcessorHome = ({
             <span className="proc-att-sub">{readyForQualityBatches.length} pending</span>
           </div>
 
-          {/* D. Packaging */}
+          {/* D. Certified CoA Received */}
           <div
             className="proc-att-card"
+            style={{ borderColor: certifiedBatches.length > 0 ? '#86EFAC' : undefined }}
             onClick={() => {
-              if (onNavigateToBatches) onNavigateToBatches('PROCESSING_COMPLETE');
+              if (onNavigateToBatches) onNavigateToBatches('QUALITY_PASSED');
               else setActiveTab('batches');
             }}
           >
             <div className="proc-att-top">
-              <Package size={17} color="#8B5CF6" />
-              <span className="proc-att-count">{packagingReadyBatches.length}</span>
+              <ShieldCheck size={17} color="#059669" />
+              <span className="proc-att-count" style={{ color: '#059669' }}>{certifiedBatches.length}</span>
             </div>
-            <span className="proc-att-lbl">Packaging</span>
-            <span className="proc-att-sub">{packagingReadyBatches.length} ready</span>
+            <span className="proc-att-lbl">Certified & CoA</span>
+            <span className="proc-att-sub">{certifiedBatches.length} reports received</span>
           </div>
 
           {/* E. Exceptions */}
@@ -189,7 +229,7 @@ export const ProcessorHome = ({
             }}
           >
             <div className="proc-qa-icon inbox">
-              <Inbox size={20} />
+              <MessageSquare size={20} />
             </div>
             <div className="proc-qa-text">
               <strong>Review Intake</strong>

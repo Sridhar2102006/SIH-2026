@@ -594,5 +594,12 @@ export const productQrService = {
         description: 'Individual jar serialization demonstrating Batch ≠ Package architecture.'
       }
     ];
+  },
+
+  /**
+   * Truncate and wipe all existing QR store records for clean manual testing
+   */
+  truncateQrStore() {
+    QR_STORE = {};
   }
 };

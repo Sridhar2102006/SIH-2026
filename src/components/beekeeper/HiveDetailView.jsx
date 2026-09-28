@@ -17,7 +17,8 @@ import {
   ShieldCheck,
   WifiOff,
   Sliders,
-  MoreVertical
+  MoreVertical,
+  Trash2
 } from 'lucide-react';
 import { useAppState } from '../../context/AppStateContext';
 import { FRAME_STATUS_LABELS } from '../../services/beekeeperDomainService';
@@ -35,6 +36,7 @@ export const HiveDetailView = ({ hiveId, onBack }) => {
     frames = [],
     hiveHistoryEvents = [],
     activities = [],
+    deleteHive,
     openSheet,
     showToast
   } = useAppState();
@@ -83,17 +85,34 @@ export const HiveDetailView = ({ hiveId, onBack }) => {
     <div className="bk-hd-viewport">
       {/* 1. Header (← All hives | HIVE H001 | Subtitle) */}
       <header className="bk-hd-header">
-        <button type="button" className="bk-hd-back" onClick={onBack} aria-label="Back to hives">
-          <ArrowLeft size={18} />
-          <span>All hives</span>
-        </button>
+        <div className="bk-hd-header-top">
+          <button type="button" className="bk-hd-back" onClick={onBack} aria-label="Back to hives">
+            <ArrowLeft size={18} />
+            <span>All hives</span>
+          </button>
+
+          <button
+            type="button"
+            className="bk-hd-trash-btn"
+            onClick={() => {
+              if (window.confirm(`Permanently trash and delete '${hive.name}' (${cleanHiveCode})? This will remove this hive and its frames from your database.`)) {
+                deleteHive(hive.id);
+                onBack();
+              }
+            }}
+            title="Trash / Delete Hive"
+          >
+            <Trash2 size={14} />
+            <span>Trash Hive</span>
+          </button>
+        </div>
 
         <div className="bk-hd-title-wrap">
           <div className="bk-hd-code-pill">{cleanHiveCode}</div>
           <div>
             <h1 className="bk-hd-name">{hive.name}</h1>
             <p className="bk-hd-apiary-sub">
-              {apiary.apiaryCode} — {apiary.name} · {hive.breed || 'Italian Apis mellifera'}
+              {apiary?.apiaryCode || 'AP1'} — {apiary?.name || 'Main Apiary'} · {hive.breed || 'Italian Apis mellifera'}
             </p>
           </div>
         </div>
@@ -162,28 +181,14 @@ export const HiveDetailView = ({ hiveId, onBack }) => {
               <h2 className="bk-hd-sec-title">Hive Frames ({hiveFrames.length})</h2>
               <p className="bk-hd-sec-sub">First-class traceability units in {cleanHiveCode}</p>
             </div>
-            <button
-              type="button"
-              className="bk-hd-add-frame-btn"
-              onClick={() => setIsRegisterFrameOpen(true)}
-            >
-              <Plus size={15} />
-              <span>Register Frame</span>
-            </button>
+
           </div>
 
           {hiveFrames.length === 0 ? (
             <div className="bk-empty-frames-card">
               <Layers size={28} color="#D99A24" />
               <strong>No frames registered yet</strong>
-              <p>Register your first frame in this hive box to start tracking its journey.</p>
-              <button
-                type="button"
-                className="btn btn-primary btn-sm"
-                onClick={() => setIsRegisterFrameOpen(true)}
-              >
-                Register Frame
-              </button>
+              <p>Frames will appear here once registered to this hive box.</p>
             </div>
           ) : (
             <div className="bk-hd-frame-list">
@@ -346,12 +351,16 @@ export const HiveDetailView = ({ hiveId, onBack }) => {
         onHarvestSuccess={(h) => {
           setHarvestTargetFrame(null);
         }}
+        onProceedToHandover={(frame) => {
+          setHandoverTargetFrame(frame);
+        }}
       />
 
       <SubmitToProcessorModal
         isOpen={Boolean(handoverTargetFrame)}
         onClose={() => setHandoverTargetFrame(null)}
-        initialFrameId={handoverTargetFrame?.id}
+        initialFrameId={handoverTargetFrame?.traceabilityCode || handoverTargetFrame?.id}
+        initialFrame={handoverTargetFrame}
         onSubmitSuccess={(h) => {
           setHandoverTargetFrame(null);
         }}
@@ -372,6 +381,12 @@ export const HiveDetailView = ({ hiveId, onBack }) => {
           background: #FFFFFF;
           border-bottom: 1px solid var(--color-divider);
         }
+        .bk-hd-header-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 0 10px;
+        }
         .bk-hd-back {
           display: flex;
           align-items: center;
@@ -382,7 +397,25 @@ export const HiveDetailView = ({ hiveId, onBack }) => {
           font-weight: 600;
           color: var(--color-warm-gray);
           cursor: pointer;
-          padding: 0 0 10px;
+          padding: 0;
+        }
+        .bk-hd-trash-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: #FFF1F0;
+          border: 1px solid rgba(217, 56, 58, 0.3);
+          border-radius: 8px;
+          padding: 5px 10px;
+          font-size: 12px;
+          font-weight: 700;
+          color: #D9383A;
+          cursor: pointer;
+          transition: background 0.15s ease, border-color 0.15s ease;
+        }
+        .bk-hd-trash-btn:hover {
+          background: #FFE4E3;
+          border-color: #D9383A;
         }
         .bk-hd-title-wrap {
           display: flex;

@@ -14,7 +14,7 @@ import { useAppState } from '../../context/AppStateContext';
 import {
   Cpu,
   Layers,
-  Inbox,
+  MessageSquare,
   Clock,
   Plus,
   Droplet,
@@ -24,6 +24,8 @@ import {
 } from 'lucide-react';
 import { ProcessorIntakeView } from './ProcessorIntakeView';
 import { ProcessorBatchesView } from './ProcessorBatchesView';
+import { ProcessorLiveFloorView } from './ProcessorLiveFloorView';
+import { ProcessorQualityHandoffView } from './ProcessorQualityHandoffView';
 import { ProcessorHistoryView } from './ProcessorHistoryView';
 import { IntakeVerificationModal } from './IntakeVerificationModal';
 import { CreateProcessingBatchModal } from './CreateProcessingBatchModal';
@@ -33,6 +35,7 @@ import { BatchHoldModal } from './BatchHoldModal';
 import { ProcessDeviationModal } from './ProcessDeviationModal';
 import { ProcessingPlanModal } from './ProcessingPlanModal';
 import { BATCH_STATUSES } from '../../services/processorDomainService';
+import { ProcessingEngine } from '../../services/processingEngine';
 
 export const ProcessingView = () => {
   const {
@@ -61,6 +64,7 @@ export const ProcessingView = () => {
   // Determine active view mode based on activeTab
   const [currentSection, setCurrentSection] = useState(() => {
     if (activeTab === 'intake') return 'INTAKE';
+    if (activeTab === 'quality' || activeTab === 'quality-handoff') return 'QUALITY_HANDOFF';
     if (activeTab === 'batches') return 'BATCHES';
     if (activeTab === 'history') return 'HISTORY';
     return 'PROCESSING';
@@ -68,6 +72,7 @@ export const ProcessingView = () => {
 
   useEffect(() => {
     if (activeTab === 'intake') setCurrentSection('INTAKE');
+    else if (activeTab === 'quality' || activeTab === 'quality-handoff') setCurrentSection('QUALITY_HANDOFF');
     else if (activeTab === 'batches') setCurrentSection('BATCHES');
     else if (activeTab === 'history') setCurrentSection('HISTORY');
     else if (activeTab === 'processing') setCurrentSection('PROCESSING');
@@ -92,9 +97,23 @@ export const ProcessingView = () => {
   }, [selectedProcessingBatchId, processingBatches]);
 
   // Counts for pills
-  const awaitingIntakesCount = handoverRecords.filter(h => h.status === 'SUBMITTED_TO_PROCESSOR' || h.status === 'AWAITING_INTAKE').length;
+  const isAwaitingStatus = (status) => (
+    status === 'SUBMITTED_TO_PROCESSOR' ||
+    status === 'SUBMITTED_BY_BEEKEEPER' ||
+    status === 'AWAITING_INTAKE' ||
+    status === 'HARVESTED' ||
+    !status
+  );
+  const awaitingIntakesCount = handoverRecords.filter(h => isAwaitingStatus(h.status)).length +
+    (harvestRecords || []).filter(hrv => !(handoverRecords || []).some(h => (hrv.id && h.harvestRecordId === hrv.id) || h.id === hrv.id)).length;
   const inProcessingCount = processingBatches.filter(b => b.status === BATCH_STATUSES.IN_PROCESSING).length;
   const onHoldCount = processingBatches.filter(b => b.status === BATCH_STATUSES.ON_HOLD).length;
+  const readyForQualityCount = processingBatches.filter(b => {
+    if (b.status === BATCH_STATUSES.SUBMITTED_TO_QUALITY) return false;
+    const readiness = ProcessingEngine.validateQualityReadiness(b);
+    return readiness.allowed;
+  }).length;
+  const certifiedBatchesCount = processingBatches.filter(b => b.status === BATCH_STATUSES.QUALITY_PASSED || b.labReport || b.coaDocumentId).length;
 
   return (
     <div className="processing-workspace-container">
@@ -107,11 +126,13 @@ export const ProcessingView = () => {
             if (activeTab !== 'intake') setActiveTab('intake');
           }}
         >
-          <Inbox size={15} />
+          <div className="proc-wa-icon-wrapper">
+            <MessageSquare size={16} />
+            {awaitingIntakesCount > 0 && (
+              <span className="proc-wa-badge">{awaitingIntakesCount}</span>
+            )}
+          </div>
           <span>Intake</span>
-          {awaitingIntakesCount > 0 && (
-            <span className="proc-tab-badge amber">{awaitingIntakesCount}</span>
-          )}
         </button>
 
         <button
@@ -126,6 +147,27 @@ export const ProcessingView = () => {
           {inProcessingCount > 0 && (
             <span className="proc-tab-badge blue">{inProcessingCount}</span>
           )}
+        </button>
+
+        <button
+          className={`proc-subnav-tab ${currentSection === 'QUALITY_HANDOFF' ? 'active' : ''}`}
+          onClick={() => {
+            setCurrentSection('QUALITY_HANDOFF');
+            if (activeTab !== 'quality') setActiveTab('quality');
+          }}
+        >
+          <div className="proc-wa-icon-wrapper">
+            <Send size={15} />
+            {readyForQualityCount > 0 && (
+              <span className="proc-tab-badge green" title="Ready to submit to Lab">{readyForQualityCount}</span>
+            )}
+            {certifiedBatchesCount > 0 && (
+              <span className="proc-tab-badge blue" title={`${certifiedBatchesCount} Lab CoA Certificates Received`} style={{ backgroundColor: '#059669', color: '#FFFFFF' }}>
+                {certifiedBatchesCount} CoA
+              </span>
+            )}
+          </div>
+          <span>Quality & Lab CoA</span>
         </button>
 
         <button
@@ -161,10 +203,30 @@ export const ProcessingView = () => {
           />
         )}
 
-        {(currentSection === 'PROCESSING' || currentSection === 'BATCHES') && (
+        {currentSection === 'PROCESSING' && (
+          <ProcessorLiveFloorView
+            onSelectBatch={(batch) => setActiveBatchForDetail(batch)}
+            onOpenCreateBatch={() => setIsCreateBatchModalOpen(true)}
+            onOpenRecordStep={(batch) => setActiveBatchForStep(batch)}
+            onOpenHoldModal={(batch) => setActiveBatchForHold(batch)}
+            onResumeFromHold={(payload) => resumeBatchFromHold(payload)}
+          />
+        )}
+
+        {currentSection === 'QUALITY_HANDOFF' && (
+          <ProcessorQualityHandoffView
+            onSelectBatch={(batch) => setActiveBatchForDetail(batch)}
+            onSubmitToQuality={submitBatchToQuality}
+            onOpenRecordStep={(batch) => setActiveBatchForStep(batch)}
+            onResolveDeviation={resolveBatchDeviation}
+          />
+        )}
+
+        {currentSection === 'BATCHES' && (
           <ProcessorBatchesView
             onSelectBatch={(batch) => setActiveBatchForDetail(batch)}
             onOpenCreateBatch={() => setIsCreateBatchModalOpen(true)}
+            onSubmitToQuality={(batchId) => submitBatchToQuality({ batchId })}
           />
         )}
 
@@ -206,6 +268,13 @@ export const ProcessingView = () => {
         onOpenHoldModal={(b) => setActiveBatchForHold(b)}
         onOpenDeviationModal={(b) => setActiveBatchForDeviation(b)}
         onOpenPlanModal={(b) => setActiveBatchForPlan(b)}
+        onResolveDeviation={(payload) => {
+          const res = resolveBatchDeviation(payload);
+          if (res?.success && activeBatchForDetail?.id === payload.batchId) {
+            setActiveBatchForDetail(res.batch);
+          }
+          return res;
+        }}
         onSkipStep={(payload) => {
           const res = skipProcessingStep(payload);
           if (res?.success && activeBatchForDetail?.id === payload.batchId) {
@@ -357,6 +426,33 @@ export const ProcessingView = () => {
         .proc-tab-badge.gray {
           background: #F3F4F6;
           color: #4B5563;
+        }
+
+        .proc-wa-icon-wrapper {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .proc-wa-badge {
+          position: absolute;
+          top: -7px;
+          right: -9px;
+          background: #25D366;
+          color: #FFFFFF;
+          font-size: 10px;
+          font-weight: 800;
+          min-width: 17px;
+          height: 17px;
+          border-radius: 9px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 4px;
+          border: 2px solid #FFFFFF;
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+          line-height: 1;
         }
 
         .proc-workspace-main {

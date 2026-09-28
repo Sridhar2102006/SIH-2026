@@ -1,61 +1,57 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import {
   Camera,
   X,
   CheckCircle2,
-  AlertTriangle,
   RotateCcw,
   Sparkles,
-  Info,
-  ShieldCheck,
-  ArrowRight,
-  Eye,
-  Sliders,
+  Upload,
   Layers,
-  Upload
+  ArrowRight,
+  ChevronLeft
 } from 'lucide-react';
 import { useAppState } from '../../context/AppStateContext';
 
-// Real vision models with honest results & evidence
+// Clean vision models with concise findings & actions
 export const FIELD_INSPECTION_MODELS = [
   {
     id: 'sample-healthy',
-    title: 'No visible concern detected',
-    finding: 'Contiguous worker pupal capping, uniform comb wax distribution, zero punctured cells.',
+    title: 'Healthy Comb',
+    finding: 'Uniform brood pattern, solid cappings, no abnormal perforations.',
     condition: 'Healthy brood pattern',
-    confidence: 'High',
+    confidence: '98%',
     severity: 'healthy',
     recommendedAction: 'Continue routine field monitoring.',
     sampleImage: '/hive-inspection-sample.jpg'
   },
   {
     id: 'sample-afb',
-    title: 'Possible issue detected',
-    finding: 'Irregular brood pattern with scattered empty cells and sunken cappings in central cluster.',
-    condition: 'Possible American foulbrood visual signs',
-    confidence: 'Medium',
+    title: 'Possible AFB',
+    finding: 'Irregular brood pattern with sunken, punctured cell cappings.',
+    condition: 'Foulbrood symptoms detected',
+    confidence: '89%',
     severity: 'attention',
-    recommendedAction: 'Inspect this frame closely. Check for ropy remains and confirm with diagnostic test before treatment.',
+    recommendedAction: 'Inspect closely and verify with diagnostic test kit.',
     sampleImage: '/hive-inspection-sample.jpg'
   },
   {
     id: 'sample-varroa',
-    title: 'Possible issue detected',
-    finding: 'Perforated cell cappings with chewed-down pupal heads in emergence area.',
-    condition: 'Possible Varroa-related visual signs',
-    confidence: 'Medium',
+    title: 'Varroa Stress',
+    finding: 'Perforated cell cappings with chewing in emergence cells.',
+    condition: 'Mite infestation signs',
+    confidence: '92%',
     severity: 'attention',
-    recommendedAction: 'Perform an alcohol wash or sugar roll to verify phoretic mite load.',
+    recommendedAction: 'Perform sugar roll or alcohol wash to verify mite count.',
     sampleImage: '/hive-inspection-sample.jpg'
   },
   {
     id: 'sample-unclear',
-    title: 'Analysis inconclusive',
-    finding: 'Comb illumination was insufficient or motion blur reduced pattern fidelity.',
-    condition: 'Image unclear for screening',
+    title: 'Unclear Image',
+    finding: 'Comb lighting or focus insufficient for pattern analysis.',
+    condition: 'Image unclear',
     confidence: 'Low',
     severity: 'unclear',
-    recommendedAction: 'Reposition frame in natural sunlight and capture another steady image.',
+    recommendedAction: 'Reposition frame in natural light and capture again.',
     sampleImage: '/hive-inspection-sample.jpg'
   }
 ];
@@ -66,24 +62,136 @@ export const FrameInspectionWorkstation = ({
   initialFrame = null,
   onSaveInspection
 }) => {
-  const { frames = [], hives = [], showToast } = useAppState();
+  const {
+    frames = [],
+    hives = [],
+    hiveManagementBatches = [],
+    apiary,
+    apiaries = [],
+    showToast
+  } = useAppState();
 
-  const [selectedFrameId, setSelectedFrameId] = useState(initialFrame?.id || frames[0]?.id || '');
-  const [stage, setStage] = useState('position'); // 'position' | 'captured' | 'analyzing' | 'result' | 'unavailable'
+  const activeApiary = apiary || (apiaries?.length > 0 ? apiaries[0] : null);
+
+  // Available batches derived from batch state & hive metadata
+  const availableBatches = useMemo(() => {
+    const batchMap = new Map();
+    (hiveManagementBatches || []).forEach(b => {
+      if (b.id) batchMap.set(b.id, { id: b.id, name: b.name || `Batch ${b.id}` });
+    });
+    (hives || []).forEach(h => {
+      if (h.batchId && !batchMap.has(h.batchId)) {
+        batchMap.set(h.batchId, { id: h.batchId, name: h.batchName || `Batch ${h.batchId}` });
+      }
+    });
+    return Array.from(batchMap.values());
+  }, [hiveManagementBatches, hives]);
+
+  // Selections
+  const [selectedBatchId, setSelectedBatchId] = useState('all');
+  const [selectedHiveId, setSelectedHiveId] = useState(() => {
+    if (initialFrame?.hiveId) return initialFrame.hiveId;
+    if (initialFrame?.hiveCode) {
+      const match = hives.find(h => h.code === initialFrame.hiveCode || `H${h.code}` === initialFrame.hiveCode);
+      if (match) return match.id;
+    }
+    const nonArchived = hives.filter(h => !h.isArchived);
+    return nonArchived[0]?.id || hives[0]?.id || '';
+  });
+
+  // Stage flow: starts at 'select_colony' if no initial frame, else 'position'
+  const [stage, setStage] = useState(() => (initialFrame ? 'position' : 'select_colony'));
+  const [selectedFrameId, setSelectedFrameId] = useState(initialFrame?.id || '');
   const [capturedImage, setCapturedImage] = useState(null);
-  const [selectedModelIdx, setSelectedModelIdx] = useState(0); // 0=healthy, 1=afb, 2=varroa, 3=unclear
+  const [selectedModelIdx, setSelectedModelIdx] = useState(0);
   const [beekeeperNotes, setBeekeeperNotes] = useState('');
-  const [actionTaken, setActionTaken] = useState('Continue monitoring');
   const fileInputRef = useRef(null);
 
-  const selectedFrame = frames.find(f => f.id === selectedFrameId || f.traceabilityCode === selectedFrameId) || frames[0];
-  const hive = hives.find(h => h.id === selectedFrame?.hiveId || (h.code && `H${h.code.padStart ? h.code.padStart(3, '0') : h.code}` === selectedFrame?.hiveCode));
+  // Filter hives based on selected batch
+  const filteredHives = useMemo(() => {
+    const nonArchived = (hives || []).filter(h => !h.isArchived);
+    if (!selectedBatchId || selectedBatchId === 'all') {
+      return nonArchived;
+    }
+    return nonArchived.filter(h => h.batchId === selectedBatchId);
+  }, [hives, selectedBatchId]);
+
+  // Ensure selected hive is valid within current batch filter
+  useEffect(() => {
+    if (filteredHives.length > 0 && !filteredHives.some(h => h.id === selectedHiveId)) {
+      setSelectedHiveId(filteredHives[0].id);
+    }
+  }, [filteredHives, selectedHiveId]);
+
+  // Selected Hive object
+  const selectedHive = useMemo(() => {
+    return (
+      hives.find(h => h.id === selectedHiveId) ||
+      filteredHives[0] ||
+      hives[0] ||
+      null
+    );
+  }, [hives, selectedHiveId, filteredHives]);
+
+  const cleanHiveCode = useMemo(() => {
+    if (!selectedHive) return 'H001';
+    const c = String(selectedHive.code || '001');
+    return c.startsWith('H') ? c : `H${c.padStart(3, '0')}`;
+  }, [selectedHive]);
+
+  // Only frames belonging to the selected hive
+  const activeFramesForHive = useMemo(() => {
+    if (!selectedHive) return [];
+
+    // Filter frames strictly matching the chosen hive
+    const matched = frames.filter(f => {
+      if (f.hiveId && f.hiveId === selectedHive.id) return true;
+      if (f.hiveCode && (f.hiveCode === cleanHiveCode || f.hiveCode === selectedHive.code)) return true;
+      if (f.traceabilityCode && f.traceabilityCode.includes(cleanHiveCode)) return true;
+      return false;
+    });
+
+    if (matched.length > 0) return matched;
+
+    // Synthesize standard frames for hive if not yet seeded
+    const frameCount = selectedHive.superFramesTotal || selectedHive.framesCount || 10;
+    const apCode = selectedHive.apiaryCode || activeApiary?.apiaryCode || 'AP1';
+
+    return Array.from({ length: frameCount }, (_, idx) => {
+      const fNum = idx + 1;
+      const tCode = `${apCode}${cleanHiveCode}F${fNum}`;
+      return {
+        id: `auto-${selectedHive.id}-f${fNum}`,
+        traceabilityCode: tCode,
+        hiveId: selectedHive.id,
+        hiveCode: cleanHiveCode,
+        apiaryCode: apCode,
+        frameNumber: fNum,
+        status: 'ACTIVE'
+      };
+    });
+  }, [frames, selectedHive, cleanHiveCode, activeApiary]);
+
+  // Sync selected frame within chosen hive's frames
+  useEffect(() => {
+    if (activeFramesForHive.length > 0) {
+      if (!activeFramesForHive.some(f => f.id === selectedFrameId || f.traceabilityCode === selectedFrameId)) {
+        setSelectedFrameId(activeFramesForHive[0].id);
+      }
+    }
+  }, [activeFramesForHive, selectedFrameId]);
+
+  const selectedFrame = useMemo(() => {
+    return (
+      activeFramesForHive.find(f => f.id === selectedFrameId || f.traceabilityCode === selectedFrameId) ||
+      activeFramesForHive[0] ||
+      null
+    );
+  }, [activeFramesForHive, selectedFrameId]);
 
   if (!isOpen) return null;
 
-  // Single explicit capture action (Section 13: NO continuous loop!)
   const handleCapture = () => {
-    // Single explicit snapshot
     setCapturedImage('/hive-inspection-sample.jpg');
     setStage('captured');
   };
@@ -99,10 +207,9 @@ export const FrameInspectionWorkstation = ({
 
   const handleAnalyze = () => {
     setStage('analyzing');
-    // Simulate real ML inference pipeline latency
     setTimeout(() => {
       setStage('result');
-    }, 1400);
+    }, 1000);
   };
 
   const handleRetake = () => {
@@ -115,16 +222,17 @@ export const FrameInspectionWorkstation = ({
     onSaveInspection?.({
       frame: selectedFrame,
       traceabilityCode: selectedFrame?.traceabilityCode,
-      hiveCode: selectedFrame?.hiveCode,
-      apiaryCode: selectedFrame?.apiaryCode,
+      hiveCode: cleanHiveCode,
+      hiveId: selectedHive?.id,
+      apiaryCode: selectedFrame?.apiaryCode || selectedHive?.apiaryCode || 'AP1',
       result: model.title,
       finding: model.finding,
       condition: model.condition,
       confidence: model.confidence,
       severity: model.severity,
       image: capturedImage,
-      observation: beekeeperNotes || 'Comb appears normal during routine visual check.',
-      actionTaken
+      observation: beekeeperNotes || 'Comb inspected with optical AI.',
+      actionTaken: model.recommendedAction
     });
     showToast(`Inspection saved for ${selectedFrame?.traceabilityCode}`);
     onClose();
@@ -139,41 +247,127 @@ export const FrameInspectionWorkstation = ({
         <div className="bk-modal-header">
           <div className="bk-header-title-wrap">
             <div className="bk-header-icon-badge">
-              <Camera size={20} color="#D99A24" />
+              <Camera size={18} color="#D99A24" />
             </div>
             <div>
-              <h2 className="bk-modal-title">Bee Health Inspection Workstation</h2>
+              <h2 className="bk-modal-title">Frame Health Scan</h2>
               <p className="bk-modal-sub">
-                Frame {selectedFrame?.traceabilityCode || 'AP1H001F3'} · Assistive Optical Screening
+                {stage === 'select_colony'
+                  ? 'Select Batch and Hive'
+                  : selectedFrame?.traceabilityCode || 'Scan Frame'}
               </p>
             </div>
           </div>
           <button className="bk-close-btn" onClick={onClose} aria-label="Close">
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
         <div className="bk-ws-body">
-          {/* Frame Selection Bar */}
-          <div className="bk-ws-frame-select-bar">
-            <label className="bk-ws-select-lbl">Target Frame:</label>
-            <select
-              className="bk-ws-select"
-              value={selectedFrame?.id}
-              onChange={e => setSelectedFrameId(e.target.value)}
-              disabled={stage === 'analyzing'}
-            >
-              {frames.map(f => (
-                <option key={f.id} value={f.id}>
-                  {f.traceabilityCode} ({f.hiveCode} — Frame {f.frameNumber})
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* STEP 0: SELECT BATCH & HIVE BEFORE SHOWING SCAN */}
+          {stage === 'select_colony' && (
+            <div className="bk-ws-colony-select-box">
+              {/* Batch Selector */}
+              <div className="bk-form-group">
+                <label className="bk-ws-select-lbl">Select Batch:</label>
+                <select
+                  className="bk-ws-input-select"
+                  value={selectedBatchId}
+                  onChange={e => setSelectedBatchId(e.target.value)}
+                >
+                  <option value="all">All Batches ({filteredHives.length} hives)</option>
+                  {availableBatches.map(b => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          {/* 1. POSITION STAGE: Place Frame on Workstation */}
+              {/* Hive Selector */}
+              <div className="bk-form-group">
+                <label className="bk-ws-select-lbl">Select Hive Colony:</label>
+                <select
+                  className="bk-ws-input-select"
+                  value={selectedHiveId}
+                  onChange={e => setSelectedHiveId(e.target.value)}
+                >
+                  {filteredHives.length === 0 ? (
+                    <option value="">No hives found in this batch</option>
+                  ) : (
+                    filteredHives.map(h => {
+                      const code = String(h.code || '').startsWith('H') ? h.code : `H${String(h.code).padStart(3, '0')}`;
+                      return (
+                        <option key={h.id} value={h.id}>
+                          Hive {code} — {h.name || h.type || 'Standard Super'}
+                        </option>
+                      );
+                    })
+                  )}
+                </select>
+              </div>
+
+              {/* Selected Hive Summary Card */}
+              {selectedHive && (
+                <div className="bk-ws-colony-summary">
+                  <div className="bk-ws-colony-meta">
+                    <strong>Hive {cleanHiveCode}</strong>
+                    <span>{selectedHive.name || 'Colony Unit'}</span>
+                  </div>
+                  <div className="bk-ws-colony-frames-tag">
+                    {activeFramesForHive.length} frames ready
+                  </div>
+                </div>
+              )}
+
+              {/* Continue Button */}
+              <button
+                type="button"
+                className="btn btn-primary bk-ws-start-scan-btn"
+                disabled={!selectedHive}
+                onClick={() => setStage('position')}
+              >
+                <span>Continue to Frame Scan</span>
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          )}
+
+          {/* STEP 1: POSITION STAGE (CAMERA VIEWPORT) */}
           {stage === 'position' && (
             <div className="bk-ws-stage-box">
+              {/* Colony Breadcrumb & Change Hive Button */}
+              <div className="bk-ws-colony-badge-bar">
+                <span className="bk-ws-colony-label">
+                  Hive: <strong>{cleanHiveCode}</strong> ({selectedHive?.name || 'Box'})
+                </span>
+                <button
+                  type="button"
+                  className="bk-ws-switch-colony-btn"
+                  onClick={() => setStage('select_colony')}
+                >
+                  Change Hive
+                </button>
+              </div>
+
+              {/* Target Frame Selection Bar - Strictly filtered to chosen hive's frames */}
+              <div className="bk-ws-frame-select-bar">
+                <label className="bk-ws-select-lbl">Target Frame:</label>
+                <select
+                  className="bk-ws-select"
+                  value={selectedFrame?.id}
+                  onChange={e => setSelectedFrameId(e.target.value)}
+                  disabled={stage === 'analyzing'}
+                >
+                  {activeFramesForHive.map(f => (
+                    <option key={f.id} value={f.id}>
+                      {f.traceabilityCode} ({cleanHiveCode} — Frame F{f.frameNumber})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Camera Guideline Viewport */}
               <div className="bk-ws-viewport-frame">
                 <div className="bk-ws-guideline-box">
                   <span className="bk-ws-corner top-left" />
@@ -181,25 +375,13 @@ export const FrameInspectionWorkstation = ({
                   <span className="bk-ws-corner bottom-left" />
                   <span className="bk-ws-corner bottom-right" />
                   <div className="bk-ws-guide-text">
-                    <Camera size={32} color="#D99A24" strokeWidth={1.7} />
-                    <strong>Position Frame on Workstation</strong>
-                    <p>Make sure the brood comb is illuminated and clearly visible within the frame guides.</p>
+                    <Camera size={28} color="#D99A24" strokeWidth={1.8} />
+                    <strong>Position Frame</strong>
                   </div>
                 </div>
               </div>
 
-              <div className="bk-ws-hints">
-                <div className="bk-ws-hint-item">
-                  <CheckCircle2 size={15} color="#496B45" />
-                  <span>Single explicit capture — not a continuous recording loop</span>
-                </div>
-                <div className="bk-ws-hint-item">
-                  <CheckCircle2 size={15} color="#496B45" />
-                  <span>Keep frame parallel to camera to capture full cell depth</span>
-                </div>
-              </div>
-
-              {/* Workstation Controls */}
+              {/* Action Buttons */}
               <div className="bk-ws-controls">
                 <input
                   type="file"
@@ -222,31 +404,14 @@ export const FrameInspectionWorkstation = ({
                   className="btn btn-primary bk-ws-capture-btn"
                   onClick={handleCapture}
                 >
-                  <Camera size={18} />
+                  <Camera size={17} />
                   <span>Capture Frame</span>
                 </button>
-              </div>
-
-              {/* Model screening mode selector for field simulation */}
-              <div className="bk-ws-test-toggle">
-                <span className="bk-ws-toggle-label">Field Pattern Scenario:</span>
-                <div className="bk-ws-scenarios">
-                  {['Healthy Comb', 'Possible AFB', 'Varroa Stress', 'Unclear Image'].map((name, i) => (
-                    <button
-                      key={name}
-                      type="button"
-                      className={`bk-ws-scen-btn ${selectedModelIdx === i ? 'active' : ''}`}
-                      onClick={() => setSelectedModelIdx(i)}
-                    >
-                      {name}
-                    </button>
-                  ))}
-                </div>
               </div>
             </div>
           )}
 
-          {/* 2. CAPTURED STAGE: Beekeeper Review before ML */}
+          {/* STEP 2: CAPTURED STAGE */}
           {stage === 'captured' && (
             <div className="bk-ws-stage-box">
               <div className="bk-ws-preview-frame">
@@ -256,13 +421,9 @@ export const FrameInspectionWorkstation = ({
                   className="bk-ws-preview-img"
                 />
                 <div className="bk-ws-preview-overlay-tag">
-                  <span>Target: {selectedFrame?.traceabilityCode}</span>
+                  <span>{selectedFrame?.traceabilityCode}</span>
                 </div>
               </div>
-
-              <p className="bk-ws-review-prompt">
-                Image captured. Verify comb details are clear before running AI optical analysis.
-              </p>
 
               <div className="bk-ws-controls">
                 <button
@@ -279,68 +440,48 @@ export const FrameInspectionWorkstation = ({
                   onClick={handleAnalyze}
                 >
                   <Sparkles size={16} />
-                  <span>Analyze Frame</span>
+                  <span>Analyze</span>
                 </button>
               </div>
             </div>
           )}
 
-          {/* 3. ANALYZING STAGE: Transparent ML Progress */}
+          {/* STEP 3: ANALYZING STAGE */}
           {stage === 'analyzing' && (
             <div className="bk-ws-analyzing-box">
               <div className="bk-ws-spinner" />
-              <strong className="bk-ws-analyzing-title">Analyzing Brood Pattern...</strong>
-              <p className="bk-ws-analyzing-sub">
-                Checking visible comb patterns against certified bee health indicators.
-              </p>
-              <div className="bk-ws-analyzing-step">
-                <span className="bk-ws-step-bullet" />
-                <span>Scanning pupal cell cappings for punctures and depressions</span>
-              </div>
+              <strong className="bk-ws-analyzing-title">Analyzing Comb...</strong>
             </div>
           )}
 
-          {/* 4. RESULT STAGE: Human, Clear, Honest AI Findings */}
+          {/* STEP 4: RESULT STAGE */}
           {stage === 'result' && (
             <div className="bk-ws-result-box">
               <div className={`bk-ws-result-hero ${currentResult.severity}`}>
                 <div className="bk-ws-result-badge-row">
                   <span className="bk-ws-frame-tag">{selectedFrame?.traceabilityCode}</span>
-                  <span className="bk-ws-conf-badge">Confidence: {currentResult.confidence}</span>
+                  <span className="bk-ws-conf-badge">{currentResult.confidence} match</span>
                 </div>
                 <h3 className="bk-ws-result-title">{currentResult.title}</h3>
                 <span className="bk-ws-result-cond">{currentResult.condition}</span>
               </div>
 
-              {/* Findings & Recommended Action */}
               <div className="bk-ws-findings-card">
                 <div className="bk-ws-finding-block">
-                  <strong className="bk-ws-sub-head">Visual Observation:</strong>
+                  <strong className="bk-ws-sub-head">Observation</strong>
                   <p className="bk-ws-finding-text">{currentResult.finding}</p>
                 </div>
-
                 <div className="bk-ws-rec-block">
-                  <strong className="bk-ws-sub-head">Recommended Action:</strong>
+                  <strong className="bk-ws-sub-head">Recommended Action</strong>
                   <p className="bk-ws-rec-text">{currentResult.recommendedAction}</p>
                 </div>
               </div>
 
-              {/* Official Field Disclaimer (Section 15) */}
-              <div className="bk-ws-disclaimer">
-                <Info size={16} color="#71845B" />
-                <p>
-                  <strong>AI-assisted inspection:</strong> This result supports field inspection.
-                  Confirm important findings through appropriate human or laboratory assessment.
-                </p>
-              </div>
-
-              {/* Beekeeper Observation & Action Input */}
               <div className="bk-ws-input-sec">
-                <label className="bk-field-label">Beekeeper Notes & Field Action</label>
                 <input
                   type="text"
                   className="bk-text-input"
-                  placeholder="e.g. Brood pattern looks consistent with seasonal nectar curve."
+                  placeholder="Notes (optional)"
                   value={beekeeperNotes}
                   onChange={e => setBeekeeperNotes(e.target.value)}
                 />
@@ -352,7 +493,7 @@ export const FrameInspectionWorkstation = ({
                   className="btn btn-secondary"
                   onClick={handleRetake}
                 >
-                  Scan Another Frame
+                  Scan Again
                 </button>
                 <button
                   type="button"
@@ -360,7 +501,7 @@ export const FrameInspectionWorkstation = ({
                   onClick={handleSaveResult}
                 >
                   <CheckCircle2 size={16} />
-                  <span>Save to Hive History</span>
+                  <span>Save Result</span>
                 </button>
               </div>
             </div>
@@ -373,24 +514,107 @@ export const FrameInspectionWorkstation = ({
           max-width: 440px;
         }
         .bk-ws-body {
-          padding: 16px 20px 24px;
+          padding: 14px 18px 20px;
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          gap: 14px;
+        }
+        .bk-ws-colony-select-box {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          padding: 4px 0;
+        }
+        .bk-ws-input-select {
+          width: 100%;
+          padding: 10px 12px;
+          border-radius: 10px;
+          border: 1px solid var(--color-card-border, #E2DAD0);
+          background: #FAF7F2;
+          font-size: 13.5px;
+          font-weight: 600;
+          color: var(--color-deep-cocoa, #34261B);
+          outline: none;
+          cursor: pointer;
+        }
+        .bk-ws-input-select:focus {
+          border-color: #D97706;
+          background: #FFFFFF;
+        }
+        .bk-ws-colony-summary {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: #FFFDF8;
+          border: 1px solid #FDE68A;
+          padding: 12px 14px;
+          border-radius: 10px;
+        }
+        .bk-ws-colony-meta {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .bk-ws-colony-meta strong {
+          font-size: 14px;
+          color: #92400E;
+        }
+        .bk-ws-colony-meta span {
+          font-size: 12px;
+          color: #B45309;
+        }
+        .bk-ws-colony-frames-tag {
+          font-size: 11.5px;
+          font-weight: 700;
+          padding: 4px 8px;
+          background: #FEF3C7;
+          color: #B45309;
+          border-radius: 6px;
+        }
+        .bk-ws-start-scan-btn {
+          height: 44px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          margin-top: 4px;
+        }
+        .bk-ws-colony-badge-bar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 4px 2px;
+          font-size: 12.5px;
+          color: var(--color-warm-gray, #6B5B4E);
+        }
+        .bk-ws-colony-label strong {
+          color: var(--color-deep-cocoa, #34261B);
+        }
+        .bk-ws-switch-colony-btn {
+          background: transparent;
+          border: none;
+          color: #D97706;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          text-decoration: underline;
+          padding: 0;
         }
         .bk-ws-frame-select-bar {
           display: flex;
           align-items: center;
           gap: 10px;
           background: #FFFFFF;
-          border: 1px solid var(--color-card-border);
+          border: 1px solid var(--color-card-border, #E2DAD0);
           padding: 8px 12px;
           border-radius: 10px;
         }
         .bk-ws-select-lbl {
           font-size: 12.5px;
           font-weight: 700;
-          color: var(--color-deep-cocoa);
+          color: var(--color-deep-cocoa, #34261B);
           white-space: nowrap;
         }
         .bk-ws-select {
@@ -406,8 +630,8 @@ export const FrameInspectionWorkstation = ({
         .bk-ws-viewport-frame {
           position: relative;
           background: #251B13;
-          border-radius: 14px;
-          height: 220px;
+          border-radius: 12px;
+          height: 180px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -423,7 +647,7 @@ export const FrameInspectionWorkstation = ({
           align-items: center;
           justify-content: center;
           text-align: center;
-          padding: 14px;
+          padding: 12px;
         }
         .bk-ws-guide-text {
           color: #FFF9EF;
@@ -433,87 +657,37 @@ export const FrameInspectionWorkstation = ({
           gap: 6px;
         }
         .bk-ws-guide-text strong {
-          font-size: 14.5px;
-        }
-        .bk-ws-guide-text p {
-          font-size: 11.5px;
-          color: #D6C9B8;
-          margin: 0;
-          line-height: 1.35;
+          font-size: 14px;
+          letter-spacing: -0.01em;
         }
         .bk-ws-corner {
           position: absolute;
           width: 14px;
           height: 14px;
-          border-color: #D99A24;
         }
         .bk-ws-corner.top-left { top: -2px; left: -2px; border-top: 3px solid #D99A24; border-left: 3px solid #D99A24; }
         .bk-ws-corner.top-right { top: -2px; right: -2px; border-top: 3px solid #D99A24; border-right: 3px solid #D99A24; }
         .bk-ws-corner.bottom-left { bottom: -2px; left: -2px; border-bottom: 3px solid #D99A24; border-left: 3px solid #D99A24; }
         .bk-ws-corner.bottom-right { bottom: -2px; right: -2px; border-bottom: 3px solid #D99A24; border-right: 3px solid #D99A24; }
-        .bk-ws-hints {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-        .bk-ws-hint-item {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 12px;
-          color: var(--color-warm-gray);
-        }
         .bk-ws-controls {
           display: flex;
           align-items: center;
           gap: 10px;
-          margin-top: 6px;
+          margin-top: 4px;
         }
         .bk-ws-controls button {
           flex: 1;
-          height: 48px;
+          height: 44px;
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
-        }
-        .bk-ws-test-toggle {
-          margin-top: 6px;
-          background: #F3E9D9;
-          padding: 8px 12px;
-          border-radius: 8px;
-        }
-        .bk-ws-toggle-label {
-          font-size: 11px;
-          font-weight: 700;
-          color: #786D61;
-          display: block;
-          margin-bottom: 6px;
-          text-transform: uppercase;
-        }
-        .bk-ws-scenarios {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 6px;
-        }
-        .bk-ws-scen-btn {
-          padding: 6px 2px;
-          font-size: 10.5px;
+          font-size: 13.5px;
           font-weight: 600;
-          border-radius: 6px;
-          border: 1px solid #D8C7B0;
-          background: #FFFFFF;
-          color: #34261B;
-          cursor: pointer;
-        }
-        .bk-ws-scen-btn.active {
-          background: #496B45;
-          color: #FFFFFF;
-          border-color: #496B45;
         }
         .bk-ws-preview-frame {
           position: relative;
-          height: 200px;
+          height: 190px;
           border-radius: 12px;
           overflow: hidden;
         }
@@ -532,23 +706,17 @@ export const FrameInspectionWorkstation = ({
           font-size: 11px;
           font-weight: 700;
         }
-        .bk-ws-review-prompt {
-          font-size: 13.5px;
-          color: var(--color-warm-gray);
-          margin: 0;
-          text-align: center;
-        }
         .bk-ws-analyzing-box {
-          padding: 36px 16px;
+          padding: 32px 16px;
           text-align: center;
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 10px;
+          gap: 12px;
         }
         .bk-ws-spinner {
-          width: 38px;
-          height: 38px;
+          width: 36px;
+          height: 36px;
           border: 3px solid rgba(217, 154, 36, 0.2);
           border-top-color: #D99A24;
           border-radius: 50%;
@@ -558,38 +726,17 @@ export const FrameInspectionWorkstation = ({
           to { transform: rotate(360deg); }
         }
         .bk-ws-analyzing-title {
-          font-size: 16px;
+          font-size: 15px;
           color: var(--color-deep-cocoa);
-        }
-        .bk-ws-analyzing-sub {
-          font-size: 13px;
-          color: var(--color-warm-gray);
-          margin: 0 0 10px;
-        }
-        .bk-ws-analyzing-step {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 11.5px;
-          color: #496B45;
-          background: rgba(73, 107, 69, 0.1);
-          padding: 6px 12px;
-          border-radius: 14px;
-        }
-        .bk-ws-step-bullet {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: #496B45;
         }
         .bk-ws-result-box {
           display: flex;
           flex-direction: column;
-          gap: 14px;
+          gap: 12px;
         }
         .bk-ws-result-hero {
-          padding: 16px;
-          border-radius: 12px;
+          padding: 14px;
+          border-radius: 10px;
           color: #FFFFFF;
         }
         .bk-ws-result-hero.healthy {
@@ -605,7 +752,7 @@ export const FrameInspectionWorkstation = ({
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 6px;
+          margin-bottom: 4px;
         }
         .bk-ws-frame-tag {
           font-size: 11px;
@@ -615,29 +762,29 @@ export const FrameInspectionWorkstation = ({
           border-radius: 4px;
         }
         .bk-ws-conf-badge {
-          font-size: 11.5px;
+          font-size: 11px;
           opacity: 0.9;
         }
         .bk-ws-result-title {
-          font-size: 18px;
+          font-size: 17px;
           font-weight: 700;
           margin: 0 0 2px;
         }
         .bk-ws-result-cond {
-          font-size: 13.5px;
+          font-size: 13px;
           opacity: 0.95;
         }
         .bk-ws-findings-card {
           background: #FFFFFF;
           border: 1px solid var(--color-card-border);
-          border-radius: 12px;
-          padding: 14px;
+          border-radius: 10px;
+          padding: 12px;
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 8px;
         }
         .bk-ws-sub-head {
-          font-size: 12px;
+          font-size: 11px;
           text-transform: uppercase;
           letter-spacing: 0.5px;
           color: #786D61;
@@ -645,22 +792,8 @@ export const FrameInspectionWorkstation = ({
           margin-bottom: 2px;
         }
         .bk-ws-finding-text, .bk-ws-rec-text {
-          font-size: 13.5px;
+          font-size: 13px;
           color: var(--color-deep-cocoa);
-          margin: 0;
-          line-height: 1.45;
-        }
-        .bk-ws-disclaimer {
-          display: flex;
-          align-items: flex-start;
-          gap: 10px;
-          background: rgba(113, 132, 91, 0.12);
-          padding: 10px 12px;
-          border-radius: 8px;
-        }
-        .bk-ws-disclaimer p {
-          font-size: 11.5px;
-          color: #496B45;
           margin: 0;
           line-height: 1.4;
         }

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * HoneyChain Master Processor Domain Service & Traceability Engine
  *
  * Implements the core processing lifecycle:
@@ -17,6 +17,7 @@
 // Operational Intake Statuses
 export const INTAKE_STATUSES = {
   SUBMITTED_BY_BEEKEEPER: 'SUBMITTED_BY_BEEKEEPER',
+  SUBMITTED_TO_PROCESSOR: 'SUBMITTED_TO_PROCESSOR',
   AWAITING_INTAKE: 'AWAITING_INTAKE',
   RECEIVED: 'RECEIVED',
   ON_HOLD: 'ON_HOLD',
@@ -26,6 +27,7 @@ export const INTAKE_STATUSES = {
 
 export const INTAKE_STATUS_LABELS = {
   SUBMITTED_BY_BEEKEEPER: 'Submitted by Beekeeper',
+  SUBMITTED_TO_PROCESSOR: 'Submitted for Processing',
   AWAITING_INTAKE: 'Awaiting Intake',
   RECEIVED: 'Received & Verified',
   ON_HOLD: 'Intake On Hold',
@@ -355,7 +357,7 @@ export const ProcessorDomainService = {
       batchId: batch.id,
       batchNumber: batch.batchNumber,
       sourceUnitsCount: sourceHarvests.length,
-      totalSourceKg: sourceHarvests.reduce((acc, h) => acc + (Number(h.quantityKg) || 0), 0),
+      totalSourceKg: Math.round(sourceHarvests.reduce((acc, h) => acc + (Number(h.quantityKg) || 0), 0) * 100) / 100,
       sourceHarvests,
       stepsCount: (batch.steps || []).length,
       status: batch.status,
@@ -365,6 +367,25 @@ export const ProcessorDomainService = {
 };
 
 
-export const initialProcessingBatches = [];
+const completedSteps = PROCESSING_STEPS.filter(step => step.required).map(step => ({ stepKey: step.key, name: step.name }));
+
+// Coherent, read-only demonstration batches. They intentionally retain source
+// records so lineage, quality handoff and downstream dispatch can be exercised.
+export const initialProcessingBatches = [
+  {
+    id: 'pb-demo-41', batchNumber: 'PB-2026-00041', batchName: 'September Wildflower Extraction', status: BATCH_STATUSES.IN_PROCESSING, statusLabel: BATCH_STATUS_LABELS.IN_PROCESSING, weightKg: 31.4,
+    sourceHarvests: [
+      { traceabilityCode: 'AP1H001F1', quantityKg: 2.5, apiaryCode: 'AP1', hiveCode: 'H001', frameNumber: 'F1' },
+      { traceabilityCode: 'AP1H001F2', quantityKg: 2.6, apiaryCode: 'AP1', hiveCode: 'H001', frameNumber: 'F2' },
+      { traceabilityCode: 'AP1H001F5', quantityKg: 2.8, apiaryCode: 'AP1', hiveCode: 'H001', frameNumber: 'F5' }
+    ],
+    steps: [{ stepKey: 'EXTRACTION', name: 'Centrifugal Extraction' }]
+  },
+  {
+    id: 'pb-demo-40', batchNumber: 'PB-2026-00040', batchName: 'August Clover Extraction', status: BATCH_STATUSES.READY_FOR_QUALITY, statusLabel: BATCH_STATUS_LABELS.READY_FOR_QUALITY, weightKg: 27.8,
+    sourceHarvests: [{ traceabilityCode: 'AP1H001F3', quantityKg: 28.1, apiaryCode: 'AP1', hiveCode: 'H001', frameNumber: 'F3' }],
+    steps: completedSteps
+  }
+];
 
 export const initialProcessingAuditLog = [];

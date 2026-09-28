@@ -27,7 +27,9 @@ import {
   RotateCcw,
   Edit3,
   X,
-  AlertCircle
+  AlertCircle,
+  Camera,
+  Send
 } from 'lucide-react';
 import {
   REVIEW_STATUSES,
@@ -44,6 +46,7 @@ export const ReviewView = () => {
     reviewTestResult,
     correctTestResult,
     submitQualityRecommendation,
+    sendLabReportToProcessorAndDispatch,
     showToast,
     session,
     can
@@ -508,6 +511,23 @@ export const ReviewView = () => {
                     >
                       <FileText size={13} style={{ marginRight: '4px' }} />
                       <span>View Report</span>
+                    </button>
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={() => {
+                        if (sendLabReportToProcessorAndDispatch) {
+                          sendLabReportToProcessorAndDispatch({
+                            sampleId: sample.id,
+                            notes: sample.recommendationNotes || 'Laboratory Certificate of Analysis verified and transmitted.',
+                            decision: 'RELEASED_FOR_BOTTLING'
+                          });
+                        }
+                      }}
+                      style={{ fontSize: '12px', padding: '5px 12px', backgroundColor: '#059669', borderColor: '#059669' }}
+                      title="Transmit official CoA to Processor and Dispatch Units"
+                    >
+                      <Send size={13} style={{ marginRight: '4px' }} />
+                      <span>Send to Processor & Dispatch</span>
                     </button>
                   </div>
                 </div>

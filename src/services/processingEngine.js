@@ -488,7 +488,7 @@ export const ProcessingEngine = {
   /**
    * Evaluates if a batch can be submitted to Quality (Incomplete Batch Protection)
    */
-  validateQualityReadiness(batch) {
+  validateQualityReadiness(batch, { allowAutoDisposition = false } = {}) {
     if (!batch) {
       return { allowed: false, reasons: ['Batch does not exist'] };
     }
@@ -496,7 +496,7 @@ export const ProcessingEngine = {
     const reasons = [];
     const missingSteps = [];
 
-    // Check for Hold
+    // Check for Hold on batch level
     if (batch.status === BATCH_STATUSES.ON_HOLD) {
       reasons.push(`Batch ${batch.batchNumber} is currently ON HOLD. Resolve hold before quality submission.`);
     }
@@ -507,13 +507,16 @@ export const ProcessingEngine = {
     }
 
     // Check mandatory plan steps
-    const completedOrSkippedKeys = (batch.steps || []).map(s => s.stepKey);
     const planSteps = Array.isArray(batch.approvedPlan)
       ? batch.approvedPlan
       : (batch.approvedPlan?.steps || []);
+    const completedOrSkippedKeys = new Set([
+      ...(batch.steps || []).map(s => s.stepKey),
+      ...planSteps.filter(p => p.status === STEP_STATUSES.COMPLETED || p.status === STEP_STATUSES.SKIPPED).map(p => p.stepKey)
+    ]);
 
     planSteps.forEach(pStep => {
-      if (pStep.requirement === 'MANDATORY' && !completedOrSkippedKeys.includes(pStep.stepKey)) {
+      if (pStep.requirement === 'MANDATORY' && !completedOrSkippedKeys.has(pStep.stepKey)) {
         missingSteps.push(pStep.name || pStep.stepKey);
       }
     });
@@ -522,24 +525,26 @@ export const ProcessingEngine = {
       reasons.push(`Required processing steps incomplete: ${missingSteps.join(', ')}.`);
     }
 
-    // Check unresolved deviations (any deviation on HOLD or without resolution)
+    // Check source material linkage
+    if (!batch.sourceHarvests || batch.sourceHarvests.length === 0) {
+      reasons.push('Batch must have at least one verified source harvest unit linked.');
+    }
+
+    // Check unresolved deviations
     const unresolvedDeviations = (batch.deviations || []).filter(d =>
       !d.resolvedAt || d.disposition === 'HOLD'
     );
 
-    if (unresolvedDeviations.length > 0) {
-      reasons.push(`${unresolvedDeviations.length} unresolved deviation(s) require supervisor disposition.`);
-    }
-
-    // Check source material linkage
-    if (!batch.sourceHarvests || batch.sourceHarvests.length === 0) {
-      reasons.push('Batch must have at least one verified source harvest unit linked.');
+    if (unresolvedDeviations.length > 0 && !allowAutoDisposition) {
+      reasons.push(`${unresolvedDeviations.length} unresolved deviation(s) require supervisor disposition before quality handoff.`);
     }
 
     return {
       allowed: reasons.length === 0,
       missingSteps,
       unresolvedDeviations,
+      hasDeviations: (batch.deviations || []).length > 0,
+      hasOpenDeviations: unresolvedDeviations.length > 0,
       reasons
     };
   }

@@ -18,7 +18,8 @@ import {
   Truck,
   QrCode,
   Compass,
-  MoreHorizontal
+  MoreHorizontal,
+  MessageSquare
 } from 'lucide-react';
 
 const ICON_MAP = {
@@ -39,7 +40,8 @@ const ICON_MAP = {
   ShoppingBag,
   Truck,
   QrCode,
-  MoreHorizontal
+  MoreHorizontal,
+  MessageSquare
 };
 
 export const BottomNav = () => {
@@ -91,16 +93,18 @@ export const BottomNav = () => {
           border-top: 1px solid var(--theme-border, var(--color-divider));
           z-index: 50;
           padding-bottom: var(--safe-bottom);
-          box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05);
+          box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.06);
           transition: background-color 0.2s ease, border-color 0.2s ease;
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
         }
 
         .bottom-nav-inner {
           display: flex;
           align-items: center;
           justify-content: space-around;
-          height: 64px;
-          padding: 0 8px;
+          height: 68px;
+          padding: 0 4px;
         }
 
         .nav-item {
@@ -116,12 +120,13 @@ export const BottomNav = () => {
           cursor: pointer;
           padding: 6px 0;
           height: 100%;
-          transition: all 0.15s ease;
+          transition: all 0.2s ease;
           border-radius: var(--radius-button);
+          font-family: inherit;
         }
 
         .nav-item:active {
-          transform: scale(0.94);
+          transform: scale(0.92);
         }
 
         .nav-icon-wrapper {
@@ -129,55 +134,62 @@ export const BottomNav = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 32px;
-          height: 26px;
+          width: 44px;
+          height: 28px;
           border-radius: 14px;
-          transition: all 0.2s ease;
+          transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .nav-badge {
           position: absolute;
-          top: -2px;
-          right: -4px;
-          min-width: 14px;
-          height: 14px;
-          border-radius: 7px;
-          background: #DC2626;
-          color: #FFF;
-          font-size: 9px;
-          font-weight: 700;
+          top: -5px;
+          right: -6px;
+          min-width: 17px;
+          height: 17px;
+          border-radius: 9px;
+          background: #25D366;
+          color: #FFFFFF;
+          font-size: 10px;
+          font-weight: 800;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 0 3px;
+          padding: 0 4px;
+          border: 2px solid #FFFFFF;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+          line-height: 1;
+          letter-spacing: -0.2px;
+          z-index: 2;
         }
 
         .nav-label {
-          font-size: 11px;
+          font-size: 10.5px;
           font-weight: 500;
           line-height: 1;
           letter-spacing: 0.01em;
+          transition: all 0.2s ease;
         }
 
+        /* Active state */
         .nav-item.active {
-          color: var(--theme-text-primary, var(--color-deep-cocoa));
+          color: var(--theme-nav-active, var(--color-deep-honey));
         }
 
         .nav-item.active .nav-icon-wrapper {
-          color: var(--theme-nav-active, var(--color-deep-honey));
-          background-color: var(--color-primary-honey-tint);
+          background-color: var(--color-primary-honey-tint, rgba(217, 154, 36, 0.14));
+          transform: translateY(-1px);
         }
 
         .nav-item.active .nav-label {
           font-weight: 700;
-          color: var(--theme-text-primary, var(--color-deep-cocoa));
+          color: var(--theme-nav-active, var(--color-deep-honey));
         }
 
         /* Lab Specific BottomNav Overrides */
         .module-lab .bottom-nav {
-          background-color: #FFFFFF;
+          background-color: rgba(255, 255, 255, 0.98);
           border-top: 1px solid #E2E8F0;
-          box-shadow: 0 -2px 10px rgba(15, 23, 42, 0.04);
+          box-shadow: 0 -2px 16px rgba(15, 23, 42, 0.05);
         }
         .module-lab .nav-item {
           color: #64748B;
@@ -186,12 +198,34 @@ export const BottomNav = () => {
           color: #2563EB;
         }
         .module-lab .nav-item.active .nav-icon-wrapper {
-          color: #2563EB;
           background-color: #EFF6FF;
+          color: #2563EB;
         }
         .module-lab .nav-item.active .nav-label {
           color: #2563EB;
           font-weight: 700;
+        }
+
+        /* Processor-specific active color */
+        .module-processor .nav-item.active {
+          color: var(--color-processor-amber, #D97706);
+        }
+        .module-processor .nav-item.active .nav-icon-wrapper {
+          background-color: rgba(217, 119, 6, 0.12);
+        }
+        .module-processor .nav-item.active .nav-label {
+          color: var(--color-processor-amber, #D97706);
+        }
+
+        /* Dispatch-specific active color */
+        .module-dispatch .nav-item.active {
+          color: var(--color-dispatch-blue, #0284C7);
+        }
+        .module-dispatch .nav-item.active .nav-icon-wrapper {
+          background-color: rgba(2, 132, 199, 0.1);
+        }
+        .module-dispatch .nav-item.active .nav-label {
+          color: var(--color-dispatch-blue, #0284C7);
         }
       `}</style>
     </nav>

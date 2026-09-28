@@ -759,12 +759,20 @@ export const CommonProcessorOnboardingService = {
       'PROCESSING_MANAGEMENT',
       'BATCH_INTAKE',
       'PROCESSING_STEP_RECORD',
-      'HOLD_RELEASE_MANAGEMENT',
-      'DISPATCH_PLANNING'
+      'PROCESSING_PARAMETERS',
+      'PROCESSING_EVIDENCE',
+      'PROCESSING_COMPLETION',
+      'BATCH_TRACEABILITY',
+      'QUALITY_HANDOFF',
+      'PACKAGING_HANDOFF',
+      'HOLD_RELEASE_MANAGEMENT'
     ];
     if (answers.qualityCheck !== 'NO') capabilities.push('SAMPLE_INTAKE');
     if (answers.sources.includes('OWN_HIVES')) capabilities.push('HIVE_MANAGEMENT');
-    if (answers.processActions.includes('PACK')) capabilities.push('INVENTORY_MANAGEMENT');
+    if (answers.processActions.includes('PACK')) {
+      capabilities.push('INVENTORY_MANAGEMENT');
+      capabilities.push('PACKAGE_HONEY');
+    }
 
     return {
       organization: {
