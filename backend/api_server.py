@@ -17,6 +17,12 @@ import uuid
 import time
 import datetime
 import logging
+
+# Ensure project root is in sys.path when running from any working directory
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
 from flask import Flask, request, jsonify, make_response
 from qr_engine import generate_qr_bundle
 
